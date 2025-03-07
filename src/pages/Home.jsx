@@ -1,6 +1,8 @@
 import { useMsal } from "@azure/msal-react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import "../styles/Home.css"
+import Profile from "../components/Profile";
 
 const Home = () => {
   const { instance, accounts } = useMsal();
@@ -22,10 +24,15 @@ const Home = () => {
   }, [accounts, navigate]);
 
   return (
-    <div>
-      <h1>Página de Inicio</h1>
+    <body>
+      
+    <div className="home_container">
+      <h1 className="title">Ecibombit</h1>
+      <Profile />
       <button onClick={handleLogin}>Iniciar Sesión</button>
     </div>
+    
+    </body>
   );
 };
 
