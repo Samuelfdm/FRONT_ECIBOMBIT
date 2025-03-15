@@ -11,7 +11,7 @@ const Home = () => {
   const handleLogin = async () => {
     try {
       await instance.loginPopup();
-      navigate("/lobby"); 
+      navigate("/options"); 
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
     }
@@ -19,12 +19,11 @@ const Home = () => {
 
   useEffect(() => {
     if (accounts.length > 0) {
-      navigate("/lobby"); 
+      navigate("/options"); 
     }
   }, [accounts, navigate]);
 
   return (
-    <body>
       
     <div className="home_container">
       <h1 className="title">Ecibombit</h1>
@@ -32,7 +31,6 @@ const Home = () => {
       <button onClick={handleLogin}>Iniciar Sesión</button>
     </div>
     
-    </body>
   );
 };
 
