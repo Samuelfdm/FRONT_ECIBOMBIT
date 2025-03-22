@@ -1,79 +1,64 @@
 import React, { useEffect, useState } from "react";
-import { io } from "socket.io-client";
-import Rooms from "../components/Rooms"; 
+import { useNavigate } from "react-router-dom";
+import socket from "../components/Socket"; 
 import "../styles/Options.css"
 
+const Options = () => {
+    const [rooms, setRooms] = useState([]);
+    const [newRoom, setNewRoom] = useState("");
+    const navigate = useNavigate();
 
-const socket = io("http://localhost:3001");
+    useEffect(() => {
+        // Conectar cuando el usuario entra a la pantalla de Options
+        if (!socket.connected) {
+            socket.connect();
+        }
+        socket.emit("getRooms");
+        socket.on("roomsList", (data) => setRooms(data));
 
-function Options() {
-  const [inRoom, setInRoom] = useState(false);
-  const [playerName, setPlayerName] = useState("");
-  const [players, setPlayers] = useState([]);
-  const [rooms, setRooms] = useState([]); // Lista de salas disponibles
-  const [selectedRoom, setSelectedRoom] = useState(""); // Sala seleccionada
+        return () => socket.off("roomsList");
+    }, []);
 
-  useEffect(() => {
-    // Escuchar actualizaciones de jugadores en la sala
-    socket.on("roomUpdate", (players) => {
-      setPlayers(players);
-    });
-
-    // Escuchar la lista de salas disponibles
-    socket.on("roomsList", (rooms) => {
-      setRooms(rooms);
-    });
-
-    return () => {
-      socket.off("roomUpdate");
-      socket.off("roomsList");
+    const joinRoom = (room) => {
+        if (!room.trim()) return; 
+    
+        socket.emit("joinRoom", room, (response) => {
+            console.log("Respuesta del servidor:", response); 
+    
+            if (response && response.success) {
+                navigate(`/lobby/${room}`);
+            } else {
+                alert(response?.message || "Error al unirse a la sala.");
+            }
+        });
     };
-  }, []);
+    
+    
 
-  // Unirse a una sala
-  const joinRoom = () => {
-    if (!inRoom && playerName && selectedRoom) {
-      socket.emit("joinRoom", selectedRoom, playerName);
-      setInRoom(true);
-    }
-  };
+    return (
+        <div className="option-container"> 
+            <h2 className="section-title">Salas disponibles</h2>
+            <div className="room-creation">
+                <input
+                    type="text"
+                    placeholder="Nombre de la sala"
+                    value={newRoom}
+                    onChange={(e) => setNewRoom(e.target.value)}
+                    className="room-input"
+                />
+                <button className="create-button" onClick={() => joinRoom(newRoom)}>Crear Sala</button>
+            </div>
+            <div className="rooms-list">
+              {rooms.map((room, i) => (
+                  <button className="rooms" key={i} onClick={() => joinRoom(room)}>
+                      {room}
+                  </button>
+              ))}
+            </div>
 
-  // Salir de la sala
-  const leaveRoom = () => {
-    if (selectedRoom) {
-      socket.emit("leaveRoom", selectedRoom, playerName);
-      setPlayers([]);
-      setInRoom(false);
-    }
-  };
-
-  return (
-    <div className="option-container">
-      <input
-        type="text"
-        placeholder="Tu nombre"
-        onChange={(e) => setPlayerName(e.target.value)}
-      />
-
-      <h2>Salas disponibles</h2>
-      {/* Usamos el componente Rooms para mostrar las salas */}
-      <Rooms rooms={rooms} selectedRoom={selectedRoom} setSelectedRoom={setSelectedRoom} />
-
-      <button onClick={joinRoom} disabled={!selectedRoom || inRoom}>
-        Unirse
-      </button>
-      <button onClick={leaveRoom} disabled={!inRoom}>
-        Salir
-      </button>
-
-      <h3>Jugadores en la sala:</h3>
-      <ul>
-        {players.map((p, index) => (
-          <li key={index}>{p}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
+            
+        </div>
+    );
+};
 
 export default Options;
