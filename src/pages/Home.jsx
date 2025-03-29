@@ -5,7 +5,7 @@ import "../styles/Home.css"
 import Profile from "../components/Profile";
 
 const Home = () => {
-  const { instance, accounts } = useMsal();
+  const { instance} = useMsal();
   const navigate = useNavigate();
 
   const handleLogin = async () => {
@@ -17,11 +17,7 @@ const Home = () => {
     }
   };
 
-  useEffect(() => {
-    if (accounts.length > 0) {
-      navigate("/options"); 
-    }
-  }, [accounts, navigate]);
+
 
   return (
       

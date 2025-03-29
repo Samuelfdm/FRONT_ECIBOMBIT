@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import { useParams, useNavigate } from "react-router-dom";
 import { useMsal } from "@azure/msal-react";
-import { getUserFromApiGraph } from "../services/graphService"; // Función para obtener el usuario
+import { InteractionRequiredAuthError } from "@azure/msal-browser";
+import axios from "axios";
+
 import "../styles/Lobby.css";
 
 const socket = io("ws://localhost:3000");
@@ -18,22 +20,51 @@ const Lobby = () => {
     const { room } = useParams();
     const navigate = useNavigate();
     const { instance, accounts } = useMsal();
-    const [username, setUsername] = useState("");
+    const [username, setUserName] = useState("");
     const [players, setPlayers] = useState({});
     const [characters, setCharacters] = useState({});
     const [ready, setReady] = useState({});
 
     useEffect(() => {
-        // Obtener el nombre del usuario desde Microsoft Entra ID
-        const fetchUser = async () => {
-            const profile = await getUserFromApiGraph(instance, accounts);
-            if (profile) {
-                setUsername(profile.displayName); // Guardamos el nombre del usuario
-                socket.emit("joinRoom", { room, username: profile.displayName });
+        const fetchUserName = async () => {
+            if (accounts.length === 0) {
+                console.error("No hay cuentas activas en MSAL.");
+                return;
+            }
+
+            try {
+                const tokenResponse = await instance.acquireTokenSilent({
+                    scopes: ["User.Read"],
+                    account: accounts[0], // Selecciona la cuenta activa
+                });
+
+                const graphResponse = await axios.get("https://graph.microsoft.com/v1.0/me", {
+                    headers: { Authorization: `Bearer ${tokenResponse.accessToken}` },
+                });
+
+                setUserName(graphResponse.data.displayName);
+            } catch (error) {
+                if (error instanceof InteractionRequiredAuthError) {
+                    try {
+                        const tokenResponse = await instance.acquireTokenPopup({
+                            scopes: ["User.Read"],
+                        });
+
+                        const graphResponse = await axios.get("https://graph.microsoft.com/v1.0/me", {
+                            headers: { Authorization: `Bearer ${tokenResponse.accessToken}` },
+                        });
+
+                        setUserName(graphResponse.data.displayName);
+                    } catch (popupError) {
+                        console.error("Error al obtener el nombre del usuario:", popupError);
+                    }
+                } else {
+                    console.error("Error al obtener el nombre del usuario:", error);
+                }
             }
         };
 
-        fetchUser();
+        fetchUserName();
 
         socket.on("updateLobby", (data) => {
             setPlayers(data.players);
@@ -69,9 +100,9 @@ const Lobby = () => {
                     {charactersList.map((char) => (
                         <button 
                             key={char.id}
-                            className={`button-character ${Object.values(characters).includes(char.id) ? "disabled" : ""}`}
+                            className={`button-character ${Object.values(username).includes(char.id) ? "disabled" : ""}`}
                             onClick={() => selectCharacter(char.id)}
-                            disabled={Object.values(characters).includes(char.id)}
+                            disabled={Object.values(username).includes(char.id)}
                         >
                             <img className="character-img" src={char.emoji} alt={char.name} />
                         </button>
@@ -84,7 +115,7 @@ const Lobby = () => {
                 <div className="players-list">
                     {Object.keys(players).map((playerId) => (
                         <div key={playerId} className="player-item">
-                            <span className="player-name">{players[playerId]}</span>
+                            <span className="player-name">{username}</span>
                             <span className="player-character">{characters[playerId] || "Sin personaje"}</span>
                             <span className={`player-status ${ready[playerId] ? "ready" : "not-ready"}`}>
                                 {ready[playerId] ? "✅ Listo" : "❌ No listo"}
