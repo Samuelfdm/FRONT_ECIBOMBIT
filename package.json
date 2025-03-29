@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@azure/msal-browser": "^4.5.1",
+    "@azure/msal-browser": "^4.9.1",
     "@azure/msal-react": "^3.0.5",
     "axios": "^1.8.4",
     "ecibombit": "file:",
