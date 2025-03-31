@@ -22,28 +22,9 @@ const Lobby = () => {
     const [characters, setCharacters] = useState({});
     const [ready, setReady] = useState({});
     const [socket, setSocket] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        const newSocket = io("ws://localhost:3000");
-        setSocket(newSocket);
-
-        newSocket.on("updateLobby", (data) => {
-            setPlayers(data.players);
-            setCharacters(data.characters);
-            setReady(data.ready);
-        });
-
-        newSocket.on("gameStart", () => {
-            navigate(`/game/${room}`);
-        });
-
-        return () => {
-            newSocket.off("updateLobby");
-            newSocket.off("gameStart");
-            newSocket.disconnect();
-        };
-    }, [room, navigate]);
-
+    // Obtener nombre de usuario de Microsoft Graph
     useEffect(() => {
         const fetchUserName = async () => {
             if (accounts.length === 0) {
@@ -54,7 +35,7 @@ const Lobby = () => {
             try {
                 const tokenResponse = await instance.acquireTokenSilent({
                     scopes: ["User.Read"],
-                    account: accounts[0], // Selecciona la cuenta activa
+                    account: accounts[0],
                 });
 
                 const graphResponse = await axios.get("https://graph.microsoft.com/v1.0/me", {
@@ -62,6 +43,7 @@ const Lobby = () => {
                 });
 
                 setUserName(graphResponse.data.displayName);
+                setIsLoading(false);
             } catch (error) {
                 if (error instanceof InteractionRequiredAuthError) {
                     try {
@@ -74,11 +56,14 @@ const Lobby = () => {
                         });
 
                         setUserName(graphResponse.data.displayName);
+                        setIsLoading(false);
                     } catch (popupError) {
                         console.error("Error al obtener el nombre del usuario:", popupError);
+                        setIsLoading(false);
                     }
                 } else {
                     console.error("Error al obtener el nombre del usuario:", error);
+                    setIsLoading(false);
                 }
             }
         };
@@ -86,19 +71,92 @@ const Lobby = () => {
         fetchUserName();
     }, [accounts, instance]);
 
+    // Configurar socket y unirse a la sala cuando tengamos el nombre de usuario
+    useEffect(() => {
+        if (isLoading || !username) return;
+
+        const newSocket = io("ws://localhost:3000");
+        setSocket(newSocket);
+
+        newSocket.on("connect", () => {
+            console.log("Conectado al servidor con ID:", newSocket.id);
+            
+            // Unirse a la sala enviando el nombre de usuario
+            newSocket.emit("joinRoom", { room, username }, (response) => {
+                if (!response.success) {
+                    console.error(response.message);
+                    navigate('/');
+                } else {
+                    console.log(`Unido a la sala ${room} como ${username}`);
+                }
+            });
+        });
+
+        newSocket.on("updateLobby", (data) => {
+            setPlayers(data.players);
+            setCharacters(data.characters);
+            setReady(data.ready);
+        });
+
+        newSocket.on("gameStart", (playersData) => {
+            console.log("¡El juego ha comenzado!", playersData);
+            navigate(`/game/${room}`);
+        });
+
+        return () => {
+            console.log("Desconectando del socket...");
+            newSocket.off("updateLobby");
+            newSocket.off("gameStart");
+            newSocket.disconnect();
+        };
+    }, [room, navigate, username, isLoading]);
+
     const selectCharacter = (char) => {
         if (!socket) return;
-        socket.emit("selectCharacter", { room, character: char, username });
+        console.log(`Seleccionando personaje: ${char}`);
+        socket.emit("selectCharacter", { room, character: char });
     };
 
     const setPlayerReady = () => {
         if (!socket) return;
-        socket.emit("setReady", { room, username });
+        console.log("Marcando como listo");
+        socket.emit("setReady", room);
     };
+
+    // Determinar si un personaje ya está seleccionado por algún jugador
+    const isCharacterSelected = (charId) => {
+        return Object.values(characters).includes(charId);
+    };
+
+    // Determinar si el jugador actual ya ha seleccionado un personaje
+    const hasSelectedCharacter = () => {
+        if (!socket) return false;
+        return characters[socket.id] !== undefined;
+    };
+
+    if (isLoading) {
+        return <div className="loading">Cargando...</div>;
+    }
 
     return (
         <div className="lobby-container">
             <h2 className="room-title">Sala {room}</h2>
+            
+            <div className="player-info">
+                <h3>Bienvenido, {username}</h3>
+                {hasSelectedCharacter() ? (
+                    <div className="selected-character">
+                        <p>Tu personaje: {charactersList.find(c => c.id === characters[socket?.id])?.name}</p>
+                        <img 
+                            src={charactersList.find(c => c.id === characters[socket?.id])?.emoji} 
+                            alt="Tu personaje" 
+                            className="character-preview"
+                        />
+                    </div>
+                ) : (
+                    <p>Selecciona un personaje para comenzar</p>
+                )}
+            </div>
 
             <div className="characters-container">
                 <h3 className="subtitle">Selecciona tu personaje:</h3>
@@ -106,11 +164,12 @@ const Lobby = () => {
                     {charactersList.map((char) => (
                         <button 
                             key={char.id}
-                            className={`button-character ${Object.values(username).includes(char.id) ? "disabled" : ""}`}
+                            className={`button-character ${isCharacterSelected(char.id) ? "disabled" : ""}`}
                             onClick={() => selectCharacter(char.id)}
-                            disabled={Object.values(username).includes(char.id)}
+                            disabled={isCharacterSelected(char.id) && characters[socket?.id] !== char.id}
                         >
                             <img className="character-img" src={char.emoji} alt={char.name} />
+                            <span className="character-name">{char.name}</span>
                         </button>
                     ))}
                 </div>
@@ -121,16 +180,30 @@ const Lobby = () => {
                 <div className="players-list">
                     {Object.keys(players).map((playerId) => (
                         <div key={playerId} className="player-item">
-                            <span className="player-name">{username}</span>
-                            <span className="player-character">{characters[playerId] || "Sin personaje"}</span>
+                            <span className="player-name">
+                                {players[playerId].username || "Jugador desconocido"}
+                                {socket && playerId === socket.id ? " (Tú)" : ""}
+                            </span>
+                            <span className="player-character">
+                                {characters[playerId] ? 
+                                    charactersList.find(c => c.id === characters[playerId])?.name : 
+                                    "Sin personaje"
+                                }
+                            </span>
                             <span className={`player-status ${ready[playerId] ? "ready" : "not-ready"}`}>
                                 {ready[playerId] ? "✅ Listo" : "❌ No listo"}
                             </span>
                         </div>
                     ))}
                 </div>
-                <button className="ready-button" onClick={setPlayerReady}>
+                
+                <button 
+                    className="ready-button" 
+                    onClick={setPlayerReady}
+                    disabled={!hasSelectedCharacter() || (socket && ready[socket.id])}
+                >
                     <img className="ready-img" src="/assets/ok.png" alt="Listo" />
+                    <span>¡Estoy listo!</span>
                 </button>
             </div>
         </div>
