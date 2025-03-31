@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:3000");
-
 const Game = () => {
     const [players, setPlayers] = useState([]);
 
     useEffect(() => {
-        // Recibe la lista de jugadores cuando el juego inicia
+        const socket = io("http://localhost:3000");
+
         socket.on("gameStart", ({ players }) => {
             setPlayers(players);
         });
 
         return () => {
             socket.off("gameStart");
+            socket.disconnect();
         };
     }, []);
 

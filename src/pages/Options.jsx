@@ -6,23 +6,25 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/Options.css";
 
-const socket = io("http://localhost:3000");
-
 const Options = () => {
     const { instance, accounts } = useMsal();
     const [rooms, setRooms] = useState([]);
     const [newRoom, setNewRoom] = useState("");
     const [userName, setUserName] = useState(""); 
     const navigate = useNavigate();
+    const [socket, setSocket] = useState(null);
 
     useEffect(() => {
-        if (!socket.connected) {
-            socket.connect();
-        }
-        socket.emit("getRooms");
-        socket.on("roomsList", (data) => setRooms(data));
+        const newSocket = io("ws://localhost:3000");
+        setSocket(newSocket);
 
-        return () => socket.off("roomsList");
+        newSocket.emit("getRooms");
+        newSocket.on("roomsList", (data) => setRooms(data));
+
+        return () => {
+            newSocket.off("roomsList");
+            newSocket.disconnect();
+        };
     }, []);
 
     useEffect(() => {

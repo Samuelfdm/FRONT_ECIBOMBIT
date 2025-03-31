@@ -4,10 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useMsal } from "@azure/msal-react";
 import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import axios from "axios";
-
 import "../styles/Lobby.css";
-
-const socket = io("ws://localhost:3000");
 
 const charactersList = [
     { id: "bomber1", emoji: "/assets/character1.webp", name: "Bomber Azul" },
@@ -24,6 +21,28 @@ const Lobby = () => {
     const [players, setPlayers] = useState({});
     const [characters, setCharacters] = useState({});
     const [ready, setReady] = useState({});
+    const [socket, setSocket] = useState(null);
+
+    useEffect(() => {
+        const newSocket = io("ws://localhost:3000");
+        setSocket(newSocket);
+
+        newSocket.on("updateLobby", (data) => {
+            setPlayers(data.players);
+            setCharacters(data.characters);
+            setReady(data.ready);
+        });
+
+        newSocket.on("gameStart", () => {
+            navigate(`/game/${room}`);
+        });
+
+        return () => {
+            newSocket.off("updateLobby");
+            newSocket.off("gameStart");
+            newSocket.disconnect();
+        };
+    }, [room, navigate]);
 
     useEffect(() => {
         const fetchUserName = async () => {
@@ -65,28 +84,15 @@ const Lobby = () => {
         };
 
         fetchUserName();
-
-        socket.on("updateLobby", (data) => {
-            setPlayers(data.players);
-            setCharacters(data.characters);
-            setReady(data.ready);
-        });
-
-        socket.on("gameStart", () => {
-            navigate(`/game/${room}`);
-        });
-
-        return () => {
-            socket.off("updateLobby");
-            socket.off("gameStart");
-        };
-    }, [room, navigate, instance, accounts]);
+    }, [accounts, instance]);
 
     const selectCharacter = (char) => {
+        if (!socket) return;
         socket.emit("selectCharacter", { room, character: char, username });
     };
 
     const setPlayerReady = () => {
+        if (!socket) return;
         socket.emit("setReady", { room, username });
     };
 

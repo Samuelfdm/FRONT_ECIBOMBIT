@@ -1,5 +1,4 @@
 import { useMsal } from "@azure/msal-react";
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Home.css"
 import Profile from "../components/Profile";
@@ -16,8 +15,6 @@ const Home = () => {
       console.error("Error al iniciar sesión:", error);
     }
   };
-
-
 
   return (
       
