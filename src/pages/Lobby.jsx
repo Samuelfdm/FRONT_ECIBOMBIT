@@ -23,6 +23,8 @@ const Lobby = () => {
     const [ready, setReady] = useState({});
     const [socket, setSocket] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [countdown, setCountdown] = useState(null);
+    const [countdownActive, setCountdownActive] = useState(false);
 
     // Obtener nombre de usuario de Microsoft Graph
     useEffect(() => {
@@ -85,7 +87,7 @@ const Lobby = () => {
             newSocket.emit("joinRoom", { room, username }, (response) => {
                 if (!response.success) {
                     console.error(response.message);
-                    navigate('/');
+                    navigate('/options');
                 } else {
                     console.log(`Unido a la sala ${room} como ${username}`);
                 }
@@ -103,10 +105,27 @@ const Lobby = () => {
             navigate(`/game/${room}`);
         });
 
+        newSocket.on("countdownUpdate", (data) => {
+            setCountdown(data.timeLeft);
+            setCountdownActive(data.active);
+        });
+
+        newSocket.on("timeExpired", () => {
+            setCountdown(0);
+            setCountdownActive(false);
+        });
+
+        newSocket.on("redirectToOptions", () => {
+            navigate('/options');
+        });
+
         return () => {
             console.log("Desconectando del socket...");
             newSocket.off("updateLobby");
             newSocket.off("gameStart");
+            newSocket.off("countdownUpdate");
+            newSocket.off("timeExpired");
+            newSocket.off("redirectToOptions");
             newSocket.disconnect();
         };
     }, [room, navigate, username, isLoading]);
@@ -123,15 +142,27 @@ const Lobby = () => {
         socket.emit("setReady", room);
     };
 
-    // Determinar si un personaje ya está seleccionado por algún jugador
+    const leaveRoom = () => {
+        if (!socket) return;
+        console.log("Saliendo de la sala");
+        socket.emit("leaveRoom", room, () => {
+            navigate('/options');
+        });
+    };
+
     const isCharacterSelected = (charId) => {
         return Object.values(characters).includes(charId);
     };
 
-    // Determinar si el jugador actual ya ha seleccionado un personaje
     const hasSelectedCharacter = () => {
         if (!socket) return false;
         return characters[socket.id] !== undefined;
+    };
+
+    const formatTime = (seconds) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
     };
 
     if (isLoading) {
@@ -140,6 +171,26 @@ const Lobby = () => {
 
     return (
         <div className="lobby-container">
+            {/* Botón para salir de la sala */}
+            <button 
+                className="leave-room-button"
+                onClick={leaveRoom}
+            >
+                Salir de la sala
+            </button>
+
+            {/* Contador regresivo */}
+            {countdownActive && (
+                <div className="countdown-container">
+                    <div className="countdown">
+                        {countdown !== null ? formatTime(countdown) : "--:--"}
+                    </div>
+                    <div className="countdown-label">
+                        {countdown > 10 ? "La partida comenzará en" : "¡Prepárate! La partida comenzará en"}
+                    </div>
+                </div>
+            )}
+
             <h1 className="room-title">Sala {room}</h1>
             <div className="player-info">
                 <h2>Bienvenido, {username}</h2>

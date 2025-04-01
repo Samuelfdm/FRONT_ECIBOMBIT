@@ -11,18 +11,40 @@ const Options = () => {
     const [rooms, setRooms] = useState([]);
     const [newRoom, setNewRoom] = useState("");
     const [userName, setUserName] = useState(""); 
+    const [error, setError] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
     const [socket, setSocket] = useState(null);
 
     useEffect(() => {
-        const newSocket = io("ws://localhost:3000");
-        setSocket(newSocket);
+        const newSocket = io("ws://localhost:3000", {
+            reconnectionAttempts: 3,
+            reconnectionDelay: 1000,
+        });
+
+        newSocket.on("connect", () => {
+            console.log("Conectado al servidor Socket.io");
+            setIsLoading(false);
+        });
+
+        newSocket.on("connect_error", (err) => {
+            console.error("Error de conexión:", err);
+            setError("No se pudo conectar al servidor del juego");
+            setIsLoading(false);
+        });
 
         newSocket.emit("getRooms");
-        newSocket.on("roomsList", (data) => setRooms(data));
+        newSocket.on("roomsList", (data) => {
+            setRooms(data);
+            setIsLoading(false);
+        });
+
+        setSocket(newSocket);
 
         return () => {
             newSocket.off("roomsList");
+            newSocket.off("connect");
+            newSocket.off("connect_error");
             newSocket.disconnect();
         };
     }, []);
@@ -37,7 +59,7 @@ const Options = () => {
             try {
                 const tokenResponse = await instance.acquireTokenSilent({
                     scopes: ["User.Read"],
-                    account: accounts[0], // Selecciona la cuenta activa
+                    account: accounts[0],
                 });
 
                 const graphResponse = await axios.get("https://graph.microsoft.com/v1.0/me", {
@@ -70,13 +92,26 @@ const Options = () => {
     }, [accounts, instance]);
 
     const joinRoom = (room) => {
-        if (!room.trim()) return; 
+        if (!room.trim()) {
+            setError("El nombre de la sala no puede estar vacío");
+            return;
+        }
 
-        socket.emit("joinRoom", room, (response) => {
+        if (!userName) {
+            setError("No se pudo obtener tu nombre de usuario");
+            return;
+        }
+
+        setError(null);
+        setIsLoading(true);
+
+        socket.emit("joinRoom", { room, username: userName }, (response) => {
+            setIsLoading(false);
+            
             if (response?.success) {
                 navigate(`/lobby/${room}`);
             } else {
-                alert(response?.message || "Error al unirse a la sala.");
+                setError(response?.message || "Error al unirse a la sala");
             }
         });
     };
@@ -85,6 +120,14 @@ const Options = () => {
         <div className="option-container"> 
             <h2 className="section-title">Bienvenido, {userName || "Cargando..."}</h2>
             <h2 className="section-title">Salas disponibles</h2>
+            
+            {error && (
+                <div className="error-message">
+                    {error}
+                    <button onClick={() => setError(null)}>×</button>
+                </div>
+            )}
+
             <div className="room-creation">
                 <input
                     type="text"
@@ -92,16 +135,37 @@ const Options = () => {
                     value={newRoom}
                     onChange={(e) => setNewRoom(e.target.value)}
                     className="room-input"
+                    disabled={isLoading}
                 />
-                <button className="create-button" onClick={() => joinRoom(newRoom)}>Crear Sala</button>
+                <button 
+                    className="create-button" 
+                    onClick={() => joinRoom(newRoom)}
+                    disabled={isLoading || !newRoom.trim()}
+                >
+                    {isLoading ? "Cargando..." : "Crear Sala"}
+                </button>
             </div>
-            <div className="rooms-list">
-                {rooms.map((room, i) => (
-                    <button className="rooms" key={i} onClick={() => joinRoom(room)}>
-                        {room}
-                    </button>
-                ))}
-            </div>
+
+            {isLoading ? (
+                <div className="loading">Cargando salas...</div>
+            ) : (
+                <div className="rooms-list">
+                    {rooms.length > 0 ? (
+                        rooms.map((room, i) => (
+                            <button 
+                                className="room-button" 
+                                key={i} 
+                                onClick={() => joinRoom(room)}
+                                disabled={isLoading}
+                            >
+                                {room}
+                            </button>
+                        ))
+                    ) : (
+                        <p className="no-rooms">No hay salas disponibles</p>
+                    )}
+                </div>
+            )}
         </div>
     );
 };
