@@ -8,8 +8,17 @@
     background-image: url("/assets/fondo.jpeg");
     background-size: cover; 
     background-position: center;
+    
+    
 }
   
+@font-face {
+    font-family: 'titulos';
+    src: url('/assets/GameTitule.ttf') format('truetype'); /* CORREGIDO */
+    font-weight: normal;
+    font-style: normal;
+}
+
 .profile-container {
     display: flex;
     flex-direction: column;
@@ -18,8 +27,10 @@
 }
 
 .title{
-    font-size: 10vh;
+    font-size: 20vh;
     color: blanchedalmond;
+    font-family: 'titulos';
+    margin: 1px;
 }
   
 .profile-image {

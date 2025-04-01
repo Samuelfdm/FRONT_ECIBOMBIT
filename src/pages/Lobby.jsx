@@ -140,10 +140,9 @@ const Lobby = () => {
 
     return (
         <div className="lobby-container">
-            <h2 className="room-title">Sala {room}</h2>
-            
+            <h1 className="room-title">Sala {room}</h1>
             <div className="player-info">
-                <h3>Bienvenido, {username}</h3>
+                <h2>Bienvenido, {username}</h2>
                 {hasSelectedCharacter() ? (
                     <div className="selected-character">
                         <p>Tu personaje: {charactersList.find(c => c.id === characters[socket?.id])?.name}</p>
@@ -159,7 +158,7 @@ const Lobby = () => {
             </div>
 
             <div className="characters-container">
-                <h3 className="subtitle">Selecciona tu personaje:</h3>
+                <h2 className="subtitle">Selecciona tu personaje:</h2>
                 <div className="characters-grid">
                     {charactersList.map((char) => (
                         <button 
@@ -176,34 +175,34 @@ const Lobby = () => {
             </div>
 
             <div className="players-container">
-                <h3 className="subtitle">Jugadores en la sala:</h3>
-                <div className="players-list">
-                    {Object.keys(players).map((playerId) => (
-                        <div key={playerId} className="player-item">
-                            <span className="player-name">
-                                {players[playerId].username || "Jugador desconocido"}
-                                {socket && playerId === socket.id ? " (Tú)" : ""}
-                            </span>
-                            <span className="player-character">
-                                {characters[playerId] ? 
-                                    charactersList.find(c => c.id === characters[playerId])?.name : 
-                                    "Sin personaje"
-                                }
-                            </span>
-                            <span className={`player-status ${ready[playerId] ? "ready" : "not-ready"}`}>
-                                {ready[playerId] ? "✅ Listo" : "❌ No listo"}
-                            </span>
-                        </div>
-                    ))}
+                <div className="user">
+                    <h2 className="subtitle">Jugadores en la sala:</h2>
+                    <div className="players-list">
+                        {Object.keys(players).map((playerId) => (
+                            <div key={playerId} className="player-item">
+                                <span className="player-name">
+                                    {players[playerId].username || "Jugador desconocido"}
+                                    {socket && playerId === socket.id ? " (Tú)" : ""}
+                                </span>
+                                <span className="player-character">
+                                    {characters[playerId] ? 
+                                        charactersList.find(c => c.id === characters[playerId])?.name : 
+                                        "Sin personaje"
+                                    }
+                                </span>
+                                <span className={`player-status ${ready[playerId] ? "ready" : "not-ready"}`}>
+                                    {ready[playerId] ? "✅ Listo" : "❌ No listo"}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
-                
                 <button 
                     className="ready-button" 
                     onClick={setPlayerReady}
                     disabled={!hasSelectedCharacter() || (socket && ready[socket.id])}
                 >
                     <img className="ready-img" src="/assets/ok.png" alt="Listo" />
-                    <span>¡Estoy listo!</span>
                 </button>
             </div>
         </div>
