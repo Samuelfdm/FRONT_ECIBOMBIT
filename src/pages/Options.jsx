@@ -12,13 +12,34 @@ const Options = () => {
     const [rooms, setRooms] = useState([]);
     const [newRoom, setNewRoom] = useState("");
     const [userName, setUserName] = useState(() => {
-        // Intentar cargar el nombre de usuario del localStorage al inicializar
-        return localStorage.getItem('userName') || '';
+        return sessionStorage.getItem('userName') || '';
     }); 
     const [alerts, setAlerts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
     const [socket, setSocket] = useState(null);
+
+    // Función para cerrar sesión
+    const handleLogout = () => {
+
+        sesionStorage.removeItem('userName');
+        instance.logoutPopup({
+            postLogoutRedirectUri: "/",
+            mainWindowRedirectUri: "/"
+        }).then(() => {
+            navigate('/');
+        }).catch(error => {
+            console.error("Error al cerrar sesión:", error);
+            addAlert("Error al cerrar sesión");
+        });
+    };
+
+    const leaveRoom = () => {
+        if (!socket) return;
+        console.log("Saliendo de la sala");
+        socket.emit("leaveRoom", room, () => {
+        });
+    };
 
     const addAlert = (message, type = 'error') => {
         const id = Date.now();
@@ -67,7 +88,6 @@ const Options = () => {
 
     useEffect(() => {
         const fetchUserName = async () => {
-            // Si ya tenemos el nombre en localStorage y state, no hacemos nada
             if (userName && localStorage.getItem('userName')) {
                 return;
             }
@@ -89,7 +109,6 @@ const Options = () => {
 
                 const name = graphResponse.data.displayName;
                 setUserName(name);
-                // Guardar en localStorage
                 localStorage.setItem('userName', name);
             } catch (error) {
                 if (error instanceof InteractionRequiredAuthError) {
@@ -117,7 +136,7 @@ const Options = () => {
         };
 
         fetchUserName();
-    }, [accounts, instance, userName]); // Añadimos userName a las dependencias
+    }, [accounts, instance, userName]);
 
     const joinRoom = (room) => {
         if (!room.trim()) {
@@ -145,7 +164,16 @@ const Options = () => {
 
     return (
         <div className="option-container"> 
-            <h1 className="section-title">Bienvenido, {userName || "Cargando..."}</h1>
+            <div className="header-section">
+                <h1 className="section-title">Bienvenido, {userName || "Cargando..."}</h1>
+                <button 
+                    className="logout-button"
+                    onClick={handleLogout}
+                >
+                    Cerrar sesión
+                </button>
+            </div>
+            
             <h2 className="section-title">Salas disponibles</h2>
 
             {alerts.map(alert => (
