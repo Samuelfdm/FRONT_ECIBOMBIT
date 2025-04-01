@@ -4,17 +4,33 @@ import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import { io } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Alert from "../components/Alert";
 import "../styles/Options.css";
 
 const Options = () => {
     const { instance, accounts } = useMsal();
     const [rooms, setRooms] = useState([]);
     const [newRoom, setNewRoom] = useState("");
-    const [userName, setUserName] = useState(""); 
-    const [error, setError] = useState(null);
+    const [userName, setUserName] = useState(() => {
+        // Intentar cargar el nombre de usuario del localStorage al inicializar
+        return localStorage.getItem('userName') || '';
+    }); 
+    const [alerts, setAlerts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
     const [socket, setSocket] = useState(null);
+
+    const addAlert = (message, type = 'error') => {
+        const id = Date.now();
+        setAlerts(prev => [...prev, { id, message, type }]);
+        setTimeout(() => {
+            removeAlert(id);
+        }, 5000);
+    };
+
+    const removeAlert = (id) => {
+        setAlerts(prev => prev.filter(alert => alert.id !== id));
+    };
 
     useEffect(() => {
         const newSocket = io("ws://localhost:3000", {
@@ -29,7 +45,7 @@ const Options = () => {
 
         newSocket.on("connect_error", (err) => {
             console.error("Error de conexión:", err);
-            setError("No se pudo conectar al servidor del juego");
+            addAlert("No se pudo conectar al servidor del juego");
             setIsLoading(false);
         });
 
@@ -51,6 +67,11 @@ const Options = () => {
 
     useEffect(() => {
         const fetchUserName = async () => {
+            // Si ya tenemos el nombre en localStorage y state, no hacemos nada
+            if (userName && localStorage.getItem('userName')) {
+                return;
+            }
+
             if (accounts.length === 0) {
                 console.error("No hay cuentas activas en MSAL.");
                 return;
@@ -66,7 +87,10 @@ const Options = () => {
                     headers: { Authorization: `Bearer ${tokenResponse.accessToken}` },
                 });
 
-                setUserName(graphResponse.data.displayName);
+                const name = graphResponse.data.displayName;
+                setUserName(name);
+                // Guardar en localStorage
+                localStorage.setItem('userName', name);
             } catch (error) {
                 if (error instanceof InteractionRequiredAuthError) {
                     try {
@@ -78,31 +102,34 @@ const Options = () => {
                             headers: { Authorization: `Bearer ${tokenResponse.accessToken}` },
                         });
 
-                        setUserName(graphResponse.data.displayName);
+                        const name = graphResponse.data.displayName;
+                        setUserName(name);
+                        localStorage.setItem('userName', name);
                     } catch (popupError) {
                         console.error("Error al obtener el nombre del usuario:", popupError);
+                        addAlert("Error al obtener tu nombre de usuario");
                     }
                 } else {
                     console.error("Error al obtener el nombre del usuario:", error);
+                    addAlert("Error al obtener tu nombre de usuario");
                 }
             }
         };
 
         fetchUserName();
-    }, [accounts, instance]);
+    }, [accounts, instance, userName]); // Añadimos userName a las dependencias
 
     const joinRoom = (room) => {
         if (!room.trim()) {
-            setError("El nombre de la sala no puede estar vacío");
+            addAlert("El nombre de la sala no puede estar vacío");
             return;
         }
 
         if (!userName) {
-            setError("No se pudo obtener tu nombre de usuario");
+            addAlert("No se pudo obtener tu nombre de usuario");
             return;
         }
 
-        setError(null);
         setIsLoading(true);
 
         socket.emit("joinRoom", { room, username: userName }, (response) => {
@@ -111,22 +138,24 @@ const Options = () => {
             if (response?.success) {
                 navigate(`/lobby/${room}`);
             } else {
-                setError(response?.message || "Error al unirse a la sala");
+                addAlert(response?.message || "Error al unirse a la sala");
             }
         });
     };
 
     return (
         <div className="option-container"> 
-            <h2 className="section-title">Bienvenido, {userName || "Cargando..."}</h2>
+            <h1 className="section-title">Bienvenido, {userName || "Cargando..."}</h1>
             <h2 className="section-title">Salas disponibles</h2>
-            
-            {error && (
-                <div className="error-message">
-                    {error}
-                    <button onClick={() => setError(null)}>×</button>
-                </div>
-            )}
+
+            {alerts.map(alert => (
+                <Alert
+                    key={alert.id}
+                    message={alert.message}
+                    type={alert.type}
+                    onClose={() => removeAlert(alert.id)}
+                />
+            ))}
 
             <div className="room-creation">
                 <input
@@ -153,7 +182,7 @@ const Options = () => {
                     {rooms.length > 0 ? (
                         rooms.map((room, i) => (
                             <button 
-                                className="room-button" 
+                                className="rooms" 
                                 key={i} 
                                 onClick={() => joinRoom(room)}
                                 disabled={isLoading}

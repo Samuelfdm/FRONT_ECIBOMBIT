@@ -18,6 +18,17 @@
     margin: 20px 0;
 }
 
+@font-face {
+    font-family: 'titulos';
+    src: url('/assets/GameTitule.ttf') format('truetype'); /* CORREGIDO */
+    font-weight: normal;
+    font-style: normal;
+}
+
+h1 {
+    font-size: 100vw;
+    font-family: 'titulos';
+}
 .rooms-list{
 
     display: flex;

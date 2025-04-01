@@ -1,5 +1,5 @@
 import React from "react";
-import "./Rooms.css";
+import "../style/Rooms.css";
 
 function Rooms({ rooms, selectedRoom, setSelectedRoom }) {
   return (
