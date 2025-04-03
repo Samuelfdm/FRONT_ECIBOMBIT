@@ -15,6 +15,7 @@ const charactersList = [
 
 // Componente para el panel de configuración
 const ConfigPanel = ({ config, isOwner, onConfigChange }) => {
+    console.log("IS OWNER???????",isOwner);
     if (!isOwner) {
         return (
             <div className="config-panel">
@@ -33,37 +34,45 @@ const ConfigPanel = ({ config, isOwner, onConfigChange }) => {
             <h3>Configuración de la Sala</h3>
             <div className="config-item">
                 <label>Mapa:</label>
-                <select
-                    value={config.map}
-                    onChange={(e) => onConfigChange('map', e.target.value)}
-                >
-                    <option value="default">Default</option>
-                    <option value="map1">Mapa 1</option>
-                    <option value="map2">Mapa 2</option>
-                    <option value="map3">Mapa 3</option>
-                </select>
+                {isOwner ? (
+                    <select value={config.map} onChange={(e) => onConfigChange("map", e.target.value)}>
+                        <option value="default">Default</option>
+                        <option value="map1">Mapa 1</option>
+                        <option value="map2">Mapa 2</option>
+                        <option value="map3">Mapa 3</option>
+                    </select>
+                ) : (
+                    <p><strong>Mapa:</strong> {config.map}</p>
+                )}
             </div>
             <div className="config-item">
                 <label>Tiempo (minutos):</label>
-                <select
-                    value={config.time}
-                    onChange={(e) => onConfigChange('time', parseInt(e.target.value))}
-                >
-                    <option value="5">5</option>
-                    <option value="10">10</option>
-                    <option value="15">15</option>
-                </select>
+                {isOwner ? (
+                    <select
+                        value={config.time}
+                        onChange={(e) => onConfigChange('time', parseInt(e.target.value))}
+                    >
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="15">15</option>
+                    </select>
+                ) : (
+                    <p><strong>Tiempo:</strong> {config.time}</p>
+                )}
             </div>
             <div className="config-item">
                 <label>Ítems especiales:</label>
-                <input
-                    type="range"
-                    min="0"
-                    max="5"
-                    value={config.items}
-                    onChange={(e) => onConfigChange('items', parseInt(e.target.value))}
-                />
-                <span>{config.items}</span>
+                {isOwner ? (
+                    <input
+                        type="range"
+                        min="0"
+                        max="5"
+                        value={config.items}
+                        onChange={(e) => onConfigChange('items', parseInt(e.target.value))}
+                    />
+                ) : (
+                    <span>{config.items}</span>
+                )}
             </div>
         </div>
     );
@@ -157,24 +166,31 @@ const Lobby = () => {
                     console.error(response.message);
                     navigate('/options');
                 } else {
-                    console.log(`Unido a la sala ${room} como ${username}`);
+                    console.log("Unido a la sala/LOBBY ${room} como ${username}");
                     // Verificar si es el owner
                     setIsOwner(response.isOwner);
                     // Actualizar configuración si ya existe
                     if (response.config) {
                         setConfig(response.config);
                     }
+                    setIsLoading(false);  // Asegurar que la carga termina aquí
                 }
             });
         });
 
         newSocket.on("updateLobby", (data) => {
+            console.log("Datos recibidos en updateLobby",data);
+            if (!data.players || !data.characters || !data.ready) {
+                console.warn("Datos de la sala incompletos, posible problema con el servidor.");
+                return;
+            }
             setPlayers(data.players);
             setCharacters(data.characters);
             setReady(data.ready);
             if (data.config) {
                 setConfig(data.config);
             }
+            setIsLoading(false); // Asegurar que la carga finaliza
         });
 
         newSocket.on("gameStart", (gameData) => {
@@ -241,6 +257,7 @@ const Lobby = () => {
         });
     };
 
+    //Lobby.jsx
     const handleConfigChange = (key, value) => {
         if (!socket || !isOwner) return;
 
@@ -249,7 +266,8 @@ const Lobby = () => {
 
         socket.emit("setRoomConfig", {
             room,
-            config: newConfig
+            //config: newConfig
+            ...newConfig  // Enviar los valores directamente en lugar de anidarlos en "config"
         }, (response) => {
             if (!response.success) {
                 console.error("Error al actualizar configuración:", response.message);

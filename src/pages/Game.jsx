@@ -26,10 +26,11 @@ const Game = () => {
                         <img src={player.character} alt={`Player ${index + 1}`} />
                         <div className="player-info">
                             <h3>Puntaje</h3>
-                            <p>// {player.score ?? "--"}</p>
+                            <p>{player.score ?? "--"}</p>
                             <div className="stats">
                                 <span>💣 {player.bombs ?? 0}</span>
-                                <span>🔥 {player.fire ?? 0}</span>
+                                <span>🔥 {player.lasers ?? 0}</span>
+                                <span>🔥 {player.hammers ?? 0}</span>
                             </div>
                         </div>
                     </div>
