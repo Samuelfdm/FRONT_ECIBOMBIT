@@ -18,11 +18,11 @@ const Options = () => {
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
     const [socket, setSocket] = useState(null);
+    const [currentRoom, setCurrentRoom] = useState("");
 
     // Función para cerrar sesión
     const handleLogout = () => {
-
-        sesionStorage.removeItem('userName');
+        sessionStorage.removeItem('userName');
         instance.logoutPopup({
             postLogoutRedirectUri: "/",
             mainWindowRedirectUri: "/"
@@ -35,9 +35,13 @@ const Options = () => {
     };
 
     const leaveRoom = () => {
-        if (!socket) return;
-        console.log("Saliendo de la sala");
-        socket.emit("leaveRoom", room, () => {
+        if (!socket || !currentRoom) return;
+        socket.emit("leaveRoom", { room: currentRoom }, (response) => {
+            if (response?.success) {
+                setCurrentRoom("");
+            } else {
+                console.error("Error al salir de la sala:", response?.message);
+            }
         });
     };
 
@@ -79,16 +83,18 @@ const Options = () => {
         setSocket(newSocket);
 
         return () => {
-            newSocket.off("roomsList");
-            newSocket.off("connect");
-            newSocket.off("connect_error");
-            newSocket.disconnect();
+            if (newSocket) {
+                newSocket.off("roomsList");
+                newSocket.off("connect");
+                newSocket.off("connect_error");
+                newSocket.disconnect();
+            }
         };
     }, []);
 
     useEffect(() => {
         const fetchUserName = async () => {
-            if (userName && localStorage.getItem('userName')) {
+            if (userName || sessionStorage.getItem('userName')) {
                 return;
             }
 
@@ -152,13 +158,12 @@ const Options = () => {
         setIsLoading(true);
 
         socket.emit("joinRoom", { room, username: userName }, (response) => {
-            setIsLoading(false);
-            
             if (response?.success) {
                 navigate(`/lobby/${room}`);
             } else {
                 addAlert(response?.message || "Error al unirse a la sala");
             }
+            setIsLoading(false);
         });
     };
 

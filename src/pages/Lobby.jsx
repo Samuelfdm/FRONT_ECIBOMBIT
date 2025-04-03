@@ -13,22 +13,88 @@ const charactersList = [
     { id: "bomber4", emoji: "/assets/character4.webp", name: "Bomber Robot" },
 ];
 
+// Componente para el panel de configuración
+const ConfigPanel = ({ config, isOwner, onConfigChange }) => {
+    if (!isOwner) {
+        return (
+            <div className="config-panel">
+                <h3>Configuración de la Sala</h3>
+                <div className="config-display">
+                    <p><strong>Mapa:</strong> {config.map}</p>
+                    <p><strong>Tiempo:</strong> {config.time} minutos</p>
+                    <p><strong>Ítems especiales:</strong> {config.items}</p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="config-panel">
+            <h3>Configuración de la Sala</h3>
+            <div className="config-item">
+                <label>Mapa:</label>
+                <select
+                    value={config.map}
+                    onChange={(e) => onConfigChange('map', e.target.value)}
+                >
+                    <option value="default">Default</option>
+                    <option value="map1">Mapa 1</option>
+                    <option value="map2">Mapa 2</option>
+                    <option value="map3">Mapa 3</option>
+                </select>
+            </div>
+            <div className="config-item">
+                <label>Tiempo (minutos):</label>
+                <select
+                    value={config.time}
+                    onChange={(e) => onConfigChange('time', parseInt(e.target.value))}
+                >
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                </select>
+            </div>
+            <div className="config-item">
+                <label>Ítems especiales:</label>
+                <input
+                    type="range"
+                    min="0"
+                    max="5"
+                    value={config.items}
+                    onChange={(e) => onConfigChange('items', parseInt(e.target.value))}
+                />
+                <span>{config.items}</span>
+            </div>
+        </div>
+    );
+};
+
 const Lobby = () => {
     const { room } = useParams();
     const navigate = useNavigate();
     const { instance, accounts } = useMsal();
-    const [username, setUserName] = useState("");
+    //El username se obtiene de MSAL, pero si ya fue almacenado en sessionStorage,
+    //podriamos evitar hacer la solicitud al ApiGraph cada vez que el usuario entra.
+    const [username, setUserName] = useState(() => {
+        return sessionStorage.getItem("userName") || "";
+    });
     const [players, setPlayers] = useState({});
     const [characters, setCharacters] = useState({});
     const [ready, setReady] = useState({});
     const [socket, setSocket] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [countdown, setCountdown] = useState(null);
-    const [countdownActive, setCountdownActive] = useState(false);
+    const [config, setConfig] = useState({
+        map: "default",
+        time: 5,
+        items: 3
+    });
+    const [isOwner, setIsOwner] = useState(false);
 
     // Obtener nombre de usuario de Microsoft Graph
     useEffect(() => {
         const fetchUserName = async () => {
+            if (username) return; // Evitar consulta si ya tenemos el nombre
+
             if (accounts.length === 0) {
                 console.error("No hay cuentas activas en MSAL.");
                 return;
@@ -44,7 +110,9 @@ const Lobby = () => {
                     headers: { Authorization: `Bearer ${tokenResponse.accessToken}` },
                 });
 
-                setUserName(graphResponse.data.displayName);
+                const name = graphResponse.data.displayName;
+                setUserName(name);
+                sessionStorage.setItem("userName", name);
                 setIsLoading(false);
             } catch (error) {
                 if (error instanceof InteractionRequiredAuthError) {
@@ -71,7 +139,7 @@ const Lobby = () => {
         };
 
         fetchUserName();
-    }, [accounts, instance]);
+    }, [accounts, instance, username]);
 
     // Configurar socket y unirse a la sala cuando tengamos el nombre de usuario
     useEffect(() => {
@@ -90,6 +158,12 @@ const Lobby = () => {
                     navigate('/options');
                 } else {
                     console.log(`Unido a la sala ${room} como ${username}`);
+                    // Verificar si es el owner
+                    setIsOwner(response.isOwner);
+                    // Actualizar configuración si ya existe
+                    if (response.config) {
+                        setConfig(response.config);
+                    }
                 }
             });
         });
@@ -98,21 +172,19 @@ const Lobby = () => {
             setPlayers(data.players);
             setCharacters(data.characters);
             setReady(data.ready);
+            if (data.config) {
+                setConfig(data.config);
+            }
         });
 
-        newSocket.on("gameStart", (playersData) => {
-            console.log("¡El juego ha comenzado!", playersData);
-            navigate(`/game/${room}`);
-        });
-
-        newSocket.on("countdownUpdate", (data) => {
-            setCountdown(data.timeLeft);
-            setCountdownActive(data.active);
-        });
-
-        newSocket.on("timeExpired", () => {
-            setCountdown(0);
-            setCountdownActive(false);
+        newSocket.on("gameStart", (gameData) => {
+            console.log("¡El juego ha comenzado!", gameData);
+            navigate(`/game/${room}`, {
+                state: {
+                    initialConfig: gameData.config,
+                    players: gameData.players
+                }
+            });
         });
 
         newSocket.on("redirectToOptions", () => {
@@ -121,37 +193,83 @@ const Lobby = () => {
 
         return () => {
             console.log("Desconectando del socket...");
-            newSocket.off("updateLobby");
-            newSocket.off("gameStart");
-            newSocket.off("countdownUpdate");
-            newSocket.off("timeExpired");
-            newSocket.off("redirectToOptions");
-            newSocket.disconnect();
+            if (newSocket) {
+                newSocket.off("updateLobby");
+                newSocket.off("gameStart");
+                newSocket.off("countdownUpdate");
+                newSocket.off("timeExpired");
+                newSocket.off("redirectToOptions");
+                newSocket.disconnect();
+                setSocket(null); // Limpiar la referencia del socket
+            }
         };
     }, [room, navigate, username, isLoading]);
 
     const selectCharacter = (char) => {
         if (!socket) return;
         console.log(`Seleccionando personaje: ${char}`);
-        socket.emit("selectCharacter", { room, character: char });
+        socket.emit("selectCharacter", { room, character: char }, (response) => {
+            if (!response.success) {
+                console.error("Error al seleccionar personaje:", response.message);
+                alert("No se pudo seleccionar el personaje: " + response.message);
+            }
+        });
     };
 
     const setPlayerReady = () => {
         if (!socket) return;
-        console.log("Marcando como listo");
-        socket.emit("setReady", room);
+        const newReadyState = !ready[socket.id];
+        socket.emit("setReady", {
+            room,
+            isReady: newReadyState
+        }, (response) => {
+            if (!response.success) {
+                console.error("Error al cambiar estado:", response.message);
+            }
+        });
     };
 
     const leaveRoom = () => {
-        if (!socket) return;
+        if (!socket || !room) return;
         console.log("Saliendo de la sala");
-        socket.emit("leaveRoom", room, () => {
-            navigate('/options');
+        socket.emit("leaveRoom", { room }, (response) => {
+            if (response?.success) {
+                navigate('/options');
+            } else {
+                console.error("Error al salir de la sala:", response?.message);
+            }
+        });
+    };
+
+    const handleConfigChange = (key, value) => {
+        if (!socket || !isOwner) return;
+
+        const newConfig = { ...config, [key]: value };
+        setConfig(newConfig);
+
+        socket.emit("setRoomConfig", {
+            room,
+            config: newConfig
+        }, (response) => {
+            if (!response.success) {
+                console.error("Error al actualizar configuración:", response.message);
+                // Revertir cambios si falla
+                setConfig(prev => ({ ...prev }));
+            }
+        });
+    };
+
+    const startGame = () => {
+        if (!socket || !isOwner) return;
+        socket.emit("startGame", { room }, (response) => {
+            if (!response.success) {
+                alert(response.message);
+            }
         });
     };
 
     const isCharacterSelected = (charId) => {
-        return Object.values(characters).includes(charId);
+        return characters && Object.values(characters).includes(charId);
     };
 
     const hasSelectedCharacter = () => {
@@ -159,11 +277,8 @@ const Lobby = () => {
         return characters[socket.id] !== undefined;
     };
 
-    const formatTime = (seconds) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    };
+    const readyPlayersCount = Object.values(ready).filter(Boolean).length;
+    const totalPlayers = Object.keys(players).length;
 
     if (isLoading) {
         return <div className="loading">Cargando...</div>;
@@ -171,90 +286,130 @@ const Lobby = () => {
 
     return (
         <div className="lobby-container">
-            {/* Botón para salir de la sala */}
-            <button 
-                className="leave-room-button"
-                onClick={leaveRoom}
-            >
+            <button className="leave-room-button" onClick={leaveRoom}>
                 Salir de la sala
             </button>
 
-            {/* Contador regresivo */}
-            {countdownActive && (
-                <div className="countdown-container">
-                    <div className="countdown">
-                        {countdown !== null ? formatTime(countdown) : "--:--"}
-                    </div>
-                    <div className="countdown-label">
-                        {countdown > 10 ? "La partida comenzará en" : "¡Prepárate! La partida comenzará en"}
-                    </div>
+            <h1 className="room-title">Sala {room}</h1>
+
+            {isOwner && (
+                <div className="owner-badge">
+                    <span>👑 Creador de la sala</span>
                 </div>
             )}
 
-            <h1 className="room-title">Sala {room}</h1>
-            <div className="player-info">
-                <h2>Bienvenido, {username}</h2>
-                {hasSelectedCharacter() ? (
-                    <div className="selected-character">
-                        <p>Tu personaje: {charactersList.find(c => c.id === characters[socket?.id])?.name}</p>
-                        <img 
-                            src={charactersList.find(c => c.id === characters[socket?.id])?.emoji} 
-                            alt="Tu personaje" 
-                            className="character-preview"
-                        />
+            <div className="lobby-content">
+                <div className="left-panel">
+                    <ConfigPanel
+                        config={config}
+                        isOwner={isOwner}
+                        onConfigChange={handleConfigChange}
+                    />
+
+                    <div className="game-status">
+                        <div className="ready-count">
+                            <span>Jugadores listos:</span>
+                            <span className="count">{readyPlayersCount}/{totalPlayers}</span>
+                        </div>
+                        {/* Botón "Listo" ahora aquí (solo para no dueños) */}
+                        {!isOwner && (
+                            <button
+                                className={`ready-button ${ready[socket?.id] ? "active" : ""}`}
+                                onClick={setPlayerReady}
+                                disabled={!hasSelectedCharacter()}
+                            >
+                                <img src="/assets/ok.png" alt="Listo" className="ready-icon"/>
+                                {ready[socket?.id] ? "¡Listo!" : "Marcar como listo"}
+                            </button>
+                        )}
+                        {/* Botón "Iniciar Partida" (solo para dueños) */}
+                        {isOwner && (
+                            <button
+                                className={`start-button ${readyPlayersCount >= 2 ? 'active' : ''}`}
+                                onClick={startGame}
+                                disabled={readyPlayersCount < 2}
+                            >
+                                {readyPlayersCount >= 2 ? (
+                                    "¡Iniciar Partida!"
+                                ) : (
+                                    `Esperando ${2 - readyPlayersCount} más`
+                                )}
+                            </button>
+                        )}
                     </div>
-                ) : (
-                    <p>Selecciona un personaje para comenzar</p>
-                )}
-            </div>
-
-            <div className="characters-container">
-                <h2 className="subtitle">Selecciona tu personaje:</h2>
-                <div className="characters-grid">
-                    {charactersList.map((char) => (
-                        <button 
-                            key={char.id}
-                            className={`button-character ${isCharacterSelected(char.id) ? "disabled" : ""}`}
-                            onClick={() => selectCharacter(char.id)}
-                            disabled={isCharacterSelected(char.id) && characters[socket?.id] !== char.id}
-                        >
-                            <img className="character-img" src={char.emoji} alt={char.name} />
-                            <span className="character-name">{char.name}</span>
-                        </button>
-                    ))}
                 </div>
-            </div>
 
-            <div className="players-container">
-                <div className="user">
-                    <h2 className="subtitle">Jugadores en la sala:</h2>
-                    <div className="players-list">
-                        {Object.keys(players).map((playerId) => (
-                            <div key={playerId} className="player-item">
-                                <span className="player-name">
-                                    {players[playerId].username || "Jugador desconocido"}
-                                    {socket && playerId === socket.id ? " (Tú)" : ""}
-                                </span>
-                                <span className="player-character">
-                                    {characters[playerId] ? 
-                                        charactersList.find(c => c.id === characters[playerId])?.name : 
-                                        "Sin personaje"
-                                    }
-                                </span>
-                                <span className={`player-status ${ready[playerId] ? "ready" : "not-ready"}`}>
-                                    {ready[playerId] ? "✅ Listo" : "❌ No listo"}
-                                </span>
+                <div className="right-panel">
+                    <div className="player-info">
+                        <h2>Bienvenido, {username}</h2>
+                        {hasSelectedCharacter() ? (
+                            <div className="selected-character">
+                                <p>Tu personaje: {charactersList.find(c => c.id === characters[socket?.id])?.name}</p>
+                                <img
+                                    src={charactersList.find(c => c.id === characters[socket?.id])?.emoji}
+                                    alt="Tu personaje"
+                                    className="character-preview"
+                                />
                             </div>
-                        ))}
+                        ) : (
+                            <p className="select-character-prompt">Selecciona tu personaje</p>
+                        )}
+                    </div>
+
+                    <div className="characters-container">
+                        <h2 className="subtitle">Selecciona tu personaje:</h2>
+                        <div className="characters-grid">
+                            {charactersList.map((char) => (
+                                <button
+                                    key={char.id}
+                                    className={`character-option ${isCharacterSelected(char.id) ? "selected" : ""} ${
+                                        isCharacterSelected(char.id) && characters[socket?.id] !== char.id ? "taken" : ""
+                                    }`}
+                                    onClick={() => selectCharacter(char.id)}
+                                    disabled={isCharacterSelected(char.id) && characters[socket?.id] !== char.id}
+                                >
+                                    <img className="character-avatar" src={char.emoji} alt={char.name}/>
+                                    <span className="character-label">{char.name}</span>
+                                    {isCharacterSelected(char.id) && characters[socket?.id] !== char.id && (
+                                        <span className="taken-badge">Ocupado</span>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="players-container">
+                        <h2 className="subtitle">Jugadores en la sala:</h2>
+                        <div className="players-list">
+                            {Object.keys(players).map((playerId) => (
+                                <div key={playerId} className={`player-card ${
+                                    playerId === socket?.id ? "you" : ""
+                                } ${players[playerId].isOwner ? "owner" : ""}`}>
+                                    <div className="player-header">
+                                    <span className="player-name">
+                                        {players[playerId].username || "Jugador"}
+                                        {playerId === socket?.id && " (Tú)"}
+                                    </span>
+                                        {players[playerId].isOwner && (
+                                            <span className="owner-icon">👑</span>
+                                        )}
+                                    </div>
+                                    <div className="player-details">
+                                    <span className="character-info">
+                                        {characters[playerId] ?
+                                            charactersList.find(c => c.id === characters[playerId])?.name :
+                                            "Sin personaje"
+                                        }
+                                    </span>
+                                        <span className={`ready-status ${ready[playerId] ? "ready" : ""}`}>
+                                        {ready[playerId] ? "✅ Listo" : "⌛ Esperando"}
+                                    </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
-                <button 
-                    className="ready-button" 
-                    onClick={setPlayerReady}
-                    disabled={!hasSelectedCharacter() || (socket && ready[socket.id])}
-                >
-                    <img className="ready-img" src="/assets/ok.png" alt="Listo" />
-                </button>
             </div>
         </div>
     );

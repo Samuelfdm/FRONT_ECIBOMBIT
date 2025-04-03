@@ -9,10 +9,13 @@ const Home = () => {
 
   const handleLogin = async () => {
     try {
-      await instance.loginPopup();
-      navigate("/options"); 
+      await instance.loginPopup({
+        scopes: ["User.Read"], // Permisos requeridos para obtener el perfil del usuario
+      });
+      navigate("/options");
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
+      alert("No se pudo iniciar sesión. Verifica tu conexión e intenta de nuevo.");
     }
   };
 
