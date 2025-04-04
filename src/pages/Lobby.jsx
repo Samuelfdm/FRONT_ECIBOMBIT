@@ -15,7 +15,6 @@ const charactersList = [
 
 // Componente para el panel de configuración
 const ConfigPanel = ({ config, isOwner, onConfigChange }) => {
-    console.log("IS OWNER???????",isOwner);
     if (!isOwner) {
         return (
             <div className="config-panel">
@@ -82,8 +81,6 @@ const Lobby = () => {
     const { room } = useParams();
     const navigate = useNavigate();
     const { instance, accounts } = useMsal();
-    //El username se obtiene de MSAL, pero si ya fue almacenado en sessionStorage,
-    //podriamos evitar hacer la solicitud al ApiGraph cada vez que el usuario entra.
     const [username, setUserName] = useState(() => {
         return sessionStorage.getItem("userName") || "";
     });
@@ -92,11 +89,12 @@ const Lobby = () => {
     const [ready, setReady] = useState({});
     const [socket, setSocket] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [config, setConfig] = useState({
+    const DEFAULT_CONFIG = {
         map: "default",
         time: 5,
         items: 3
-    });
+    };
+    const [config, setConfig] = useState(DEFAULT_CONFIG);
     const [isOwner, setIsOwner] = useState(false);
 
     // Obtener nombre de usuario de Microsoft Graph
@@ -152,36 +150,35 @@ const Lobby = () => {
 
     // Configurar socket y unirse a la sala cuando tengamos el nombre de usuario
     useEffect(() => {
-        if (isLoading || !username) return;
+        if (!username) return;
 
         const newSocket = io("ws://localhost:3000");
         setSocket(newSocket);
 
-        newSocket.on("connect", () => {
+        const handleConnect = () => {
             console.log("Conectado al servidor con ID:", newSocket.id);
-            
             // Unirse a la sala enviando el nombre de usuario
             newSocket.emit("joinRoom", { room, username }, (response) => {
-                if (!response.success) {
-                    console.error(response.message);
+                if (!response?.success) {
+                    console.error(response?.message || "Error al unirse a la sala");
                     navigate('/options');
-                } else {
-                    console.log("Unido a la sala/LOBBY ${room} como ${username}");
-                    // Verificar si es el owner
-                    setIsOwner(response.isOwner);
-                    // Actualizar configuración si ya existe
-                    if (response.config) {
-                        setConfig(response.config);
-                    }
-                    setIsLoading(false);  // Asegurar que la carga termina aquí
+                    return;
                 }
+                console.log(`Unido a la sala ${room} como ${username}`);
+                // Verificar si es el owner
+                setIsOwner(response.isOwner);
+                // Actualizar configuración si ya existe
+                if (response.config) {
+                    setConfig(response.config);
+                }
+                setIsLoading(false);
             });
-        });
+        };
 
-        newSocket.on("updateLobby", (data) => {
-            console.log("Datos recibidos en updateLobby",data);
-            if (!data.players || !data.characters || !data.ready) {
-                console.warn("Datos de la sala incompletos, posible problema con el servidor.");
+        const handleUpdateLobby = (data) => {
+            if (!data?.players || !data?.characters || !data?.ready) {
+                console.warn("Datos de la sala incompletos");
+                navigate('/options');
                 return;
             }
             setPlayers(data.players);
@@ -190,9 +187,20 @@ const Lobby = () => {
             if (data.config) {
                 setConfig(data.config);
             }
-            setIsLoading(false); // Asegurar que la carga finaliza
-        });
+            //setConfig(data.config || { map: "default", time: 5, items: 3 });
+            //setIsOwner(data.players[newSocket.id]?.isOwner || false);
+            setIsLoading(false);
+        };
 
+        const handleRoomClosed = (data) => {
+            console.log(data?.message || "Sala cerrada por el servidor");
+            navigate('/options');
+        };
+
+        // Configurar listeners
+        newSocket.on("connect", handleConnect);
+        newSocket.on("updateLobby", handleUpdateLobby);
+        newSocket.on("roomClosed", handleRoomClosed);
         newSocket.on("gameStart", (gameData) => {
             console.log("¡El juego ha comenzado!", gameData);
             navigate(`/game/${room}`, {
@@ -203,37 +211,35 @@ const Lobby = () => {
             });
         });
 
-        newSocket.on("redirectToOptions", () => {
-            navigate('/options');
-        });
-
+        // Limpieza
         return () => {
-            console.log("Desconectando del socket...");
-            if (newSocket) {
-                newSocket.off("updateLobby");
-                newSocket.off("gameStart");
-                newSocket.off("countdownUpdate");
-                newSocket.off("timeExpired");
-                newSocket.off("redirectToOptions");
-                newSocket.disconnect();
-                setSocket(null); // Limpiar la referencia del socket
-            }
+            console.log("Limpiando conexión socket...");
+            newSocket.off("connect", handleConnect);
+            newSocket.off("updateLobby", handleUpdateLobby);
+            newSocket.off("gameStart");
+            newSocket.off("roomClosed", handleRoomClosed);
+            newSocket.disconnect();
         };
-    }, [room, navigate, username, isLoading]);
+    }, [room, navigate, username]);
 
+    // Funciones mejoradas con validación de socket
     const selectCharacter = (char) => {
-        if (!socket) return;
-        console.log(`Seleccionando personaje: ${char}`);
+        if (!socket?.connected) {
+            alert("Conexión no disponible");
+            return;
+        }
         socket.emit("selectCharacter", { room, character: char }, (response) => {
-            if (!response.success) {
-                console.error("Error al seleccionar personaje:", response.message);
-                alert("No se pudo seleccionar el personaje: " + response.message);
+            if (!response?.success) {
+                alert(response?.message || "Error al seleccionar personaje");
             }
         });
     };
 
     const setPlayerReady = () => {
-        if (!socket) return;
+        if (!socket?.connected) {
+            alert("Conexión no disponible");
+            return;
+        }
         const newReadyState = !ready[socket.id];
         socket.emit("setReady", {
             room,
@@ -246,18 +252,17 @@ const Lobby = () => {
     };
 
     const leaveRoom = () => {
-        if (!socket || !room) return;
-        console.log("Saliendo de la sala");
+        if (!socket?.connected || !room) {
+            alert("Conexión no disponible");
+            navigate('/options');
+            return;
+        }
         socket.emit("leaveRoom", { room }, (response) => {
-            if (response?.success) {
-                navigate('/options');
-            } else {
-                console.error("Error al salir de la sala:", response?.message);
-            }
+            console.log("Respuesta del servidor:", response);
+            navigate('/options');  // Redirigir siempre, independientemente de la respuesta
         });
     };
 
-    //Lobby.jsx
     const handleConfigChange = (key, value) => {
         if (!socket || !isOwner) return;
 

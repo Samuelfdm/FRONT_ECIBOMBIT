@@ -18,7 +18,6 @@ const Options = () => {
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
     const [socket, setSocket] = useState(null);
-    const [currentRoom, setCurrentRoom] = useState("");
 
     // Función para cerrar sesión
     const handleLogout = () => {
@@ -31,17 +30,6 @@ const Options = () => {
         }).catch(error => {
             console.error("Error al cerrar sesión:", error);
             addAlert("Error al cerrar sesión");
-        });
-    };
-
-    const leaveRoom = () => {
-        if (!socket || !currentRoom) return;
-        socket.emit("leaveRoom", { room: currentRoom }, (response) => {
-            if (response?.success) {
-                setCurrentRoom("");
-            } else {
-                console.error("Error al salir de la sala:", response?.message);
-            }
         });
     };
 
