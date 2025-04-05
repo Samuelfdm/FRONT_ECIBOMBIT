@@ -22,6 +22,7 @@ const Options = () => {
     // Función para cerrar sesión
     const handleLogout = () => {
         sessionStorage.removeItem('userName');
+        sessionStorage.removeItem('userRegistered');
         instance.logoutPopup({
             postLogoutRedirectUri: "/",
             mainWindowRedirectUri: "/"
@@ -82,7 +83,7 @@ const Options = () => {
 
     useEffect(() => {
         const fetchUserName = async () => {
-            if (userName || sessionStorage.getItem('userName')) {
+            if (userName || sessionStorage.getItem('userName') || sessionStorage.getItem('userRegistered')) {
                 return;
             }
 
@@ -90,6 +91,20 @@ const Options = () => {
                 console.error("No hay cuentas activas en MSAL.");
                 return;
             }
+
+            const registerUserInBackend = async (name, email) => {
+                try {
+                    await axios.post("http://localhost:8080/users/login", {
+                        oid: accounts[0].homeAccountId,
+                        username: name,
+                        email: email
+                    });
+                    sessionStorage.setItem('userRegistered', 'true'); // Marcar como registrado
+                } catch (e) {
+                    console.error("Error registrando usuario en backend:", e);
+                    addAlert("Error al registrar tu sesión. Intenta de nuevo.");
+                }
+            };
 
             try {
                 const tokenResponse = await instance.acquireTokenSilent({
@@ -102,8 +117,12 @@ const Options = () => {
                 });
 
                 const name = graphResponse.data.displayName;
+                const email = graphResponse.data.mail || graphResponse.data.userPrincipalName;
+
                 setUserName(name);
                 localStorage.setItem('userName', name);
+
+                await registerUserInBackend(name, email);
             } catch (error) {
                 if (error instanceof InteractionRequiredAuthError) {
                     try {
@@ -116,10 +135,14 @@ const Options = () => {
                         });
 
                         const name = graphResponse.data.displayName;
+                        const email = graphResponse.data.mail || graphResponse.data.userPrincipalName;
+
                         setUserName(name);
                         localStorage.setItem('userName', name);
+
+                        await registerUserInBackend(name, email);
                     } catch (popupError) {
-                        console.error("Error al obtener el nombre del usuario:", popupError);
+                        console.error("Error al obtener el nombre del usuario (popup):", popupError);
                         addAlert("Error al obtener tu nombre de usuario");
                     }
                 } else {
