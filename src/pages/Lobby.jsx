@@ -206,10 +206,13 @@ const Lobby = () => {
             navigate(`/game/${room}`, {
                 state: {
                     initialConfig: gameData.config,
-                    players: gameData.players
+                    players: gameData.players,
+                    board: gameData.board,
+                    gameId: gameData.gameId
                 }
             });
         });
+
 
         // Limpieza
         return () => {
@@ -222,7 +225,6 @@ const Lobby = () => {
         };
     }, [room, navigate, username]);
 
-    // Funciones mejoradas con validación de socket
     const selectCharacter = (char) => {
         if (!socket?.connected) {
             alert("Conexión no disponible");
@@ -284,9 +286,26 @@ const Lobby = () => {
 
     const startGame = () => {
         if (!socket || !isOwner) return;
-        socket.emit("startGame", { room }, (response) => {
-            if (!response.success) {
-                alert(response.message);
+
+        const readyPlayerIds = Object.keys(ready).filter((id) => ready[id]);
+        if (readyPlayerIds.length < 1) {
+            alert("Se necesitan al menos 2 jugadores listos para iniciar.");
+            return;
+        }
+
+        const gamePayload = {
+            room,
+            config,
+            players: readyPlayerIds.map((id) => ({
+                id,
+                username: players[id]?.username || "Jugador",
+                character: characters[id] || "default"
+            }))
+        };
+
+        socket.emit("startGame", gamePayload, (response) => {
+            if (!response?.success) {
+                alert(response.message || "No se pudo iniciar el juego.");
             }
         });
     };
@@ -348,14 +367,14 @@ const Lobby = () => {
                         {/* Botón "Iniciar Partida" (solo para dueños) */}
                         {isOwner && (
                             <button
-                                className={`start-button ${readyPlayersCount >= 2 ? 'active' : ''}`}
+                                className={`start-button ${readyPlayersCount >= 1 ? 'active' : ''}`}
                                 onClick={startGame}
-                                disabled={readyPlayersCount < 2}
+                                disabled={readyPlayersCount < 1}
                             >
-                                {readyPlayersCount >= 2 ? (
+                                {readyPlayersCount >= 1 ? (
                                     "¡Iniciar Partida!"
                                 ) : (
-                                    `Esperando ${2 - readyPlayersCount} más`
+                                    `Esperando ${1 - readyPlayersCount} más`
                                 )}
                             </button>
                         )}

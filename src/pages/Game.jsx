@@ -1,45 +1,49 @@
-import { useEffect, useState } from "react";
-import { io } from "socket.io-client";
+import React, { useEffect, useState } from "react";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 
 const Game = () => {
+    const { room } = useParams();
+    const navigate = useNavigate();
+    const location = useLocation();
+
+    const [config, setConfig] = useState(null);
     const [players, setPlayers] = useState([]);
+    const [board, setBoard] = useState(null);
+    const [gameId, setGameId] = useState(null);
 
     useEffect(() => {
-        const socket = io("http://localhost:3000");
+        if (!location.state) {
+            console.error("No se proporcionaron datos del juego.");
+            navigate("/options");
+            return;
+        }
 
-        socket.on("gameStart", ({ players }) => {
-            setPlayers(players);
-        });
+        setConfig(location.state.initialConfig);
+        setPlayers(location.state.players);
+        setBoard(location.state.board);
+        setGameId(location.state.gameId);
+    }, [location, navigate]);
 
-        return () => {
-            socket.off("gameStart");
-            socket.disconnect();
-        };
-    }, []);
+    if (!config || !board) return <div>Cargando juego...</div>;
 
     return (
-        <div className="game-container">
-            {/* Sección de jugadores */}
-            <div className="players-panel">
-                {players.map((player, index) => (
-                    <div key={player.id} className="player-card">
-                        <img src={player.character} alt={`Player ${index + 1}`} />
-                        <div className="player-info">
-                            <h3>Puntaje</h3>
-                            <p>{player.score ?? "--"}</p>
-                            <div className="stats">
-                                <span>💣 {player.bombs ?? 0}</span>
-                                <span>🔥 {player.lasers ?? 0}</span>
-                                <span>🔥 {player.hammers ?? 0}</span>
-                            </div>
-                        </div>
-                    </div>
-                ))}
+        <div>
+            <h2>Partida en Sala: {room}</h2>
+            <h3>Game ID: {gameId}</h3>
+            <div>
+                <strong>Configuración:</strong> {JSON.stringify(config)}
             </div>
-
-            {/* Espacio para el tablero */}
-            <div className="game-board">
-                {/* Aquí irá el juego de Bomberman */}
+            <div>
+                <strong>Jugadores:</strong>
+                <ul>
+                    {players.map((p, idx) => (
+                        <li key={idx}>{p.username} - {p.character}</li>
+                    ))}
+                </ul>
+            </div>
+            <div>
+                <strong>Tablero:</strong>
+                <pre>{JSON.stringify(board, null, 2)}</pre>
             </div>
         </div>
     );
