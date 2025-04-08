@@ -70,8 +70,7 @@ const ConfigPanel = ({ config, isOwner, onConfigChange }) => {
                     </>
                 ) : (
                     <>
-                        <label>Tiempo (minutos):</label>
-                        <p><strong>Tiempo:</strong> {config.time}</p>
+                        <p id="config-time"><strong>Tiempo:</strong> {config.time}</p>
                     </>
                 )}
             </div>
@@ -90,8 +89,8 @@ const ConfigPanel = ({ config, isOwner, onConfigChange }) => {
                     </>
                 ) : (
                     <>
-                        <label>Ítems especiales:</label>
-                        <span>{config.items}</span>
+                        <label htmlFor="config-items">Ítems especiales:</label>
+                        <span id="config-items">{config.items}</span>
                     </>
                 )}
             </div>
