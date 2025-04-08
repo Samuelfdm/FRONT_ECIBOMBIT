@@ -1,22 +1,9 @@
-.home_container {
-    display: flex;
+.background {
     flex-direction: column;
     align-items: center;
+    background-position: center; 
     justify-content: center;
-    height: 100vh; 
-    width: 100vw; 
     background-image: url("/assets/fondo.jpeg");
-    background-size: cover; 
-    background-position: center;
-    
-    
-}
-  
-@font-face {
-    font-family: 'titulos';
-    src: url('/assets/GameTitule.ttf') format('truetype'); /* CORREGIDO */
-    font-weight: normal;
-    font-style: normal;
 }
 
 .profile-container {
@@ -29,7 +16,7 @@
 .title{
     font-size: 10vw;
     color: blanchedalmond;
-    font-family: 'titulos';
+    font-family: 'titulos',sans-serif;
     margin: 1px;
 }
   

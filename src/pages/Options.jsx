@@ -5,6 +5,7 @@ import { io } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Alert from "../components/Alert";
+import "../styles/Global.css";
 import "../styles/Options.css";
 
 const Options = () => {
@@ -179,7 +180,7 @@ const Options = () => {
     };
 
     return (
-        <div className="option-container"> 
+        <div className="background"> 
             <div className="header-section">
                 <h1 className="section-title">Bienvenido, {userName || "Cargando..."}</h1>
                 <button 
@@ -224,10 +225,10 @@ const Options = () => {
             ) : (
                 <div className="rooms-list">
                     {rooms.length > 0 ? (
-                        rooms.map((room, i) => (
+                        rooms.map((room) => (
                             <button 
                                 className="rooms" 
-                                key={i} 
+                                key={room}
                                 onClick={() => joinRoom(room)}
                                 disabled={isLoading}
                             >

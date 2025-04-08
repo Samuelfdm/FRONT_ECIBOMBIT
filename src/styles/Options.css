@@ -1,14 +1,9 @@
-.option-container {
-    height: 100vh; 
-    width: 100vw;
-    display: flex;
+.background {
     flex-direction: column;
     align-items: center;
     text-align: center;
+    justify-content: flex-start;
     background-image: url("/assets/fondo.jpeg");
-    background-size: cover; /* Ajusta la imagen al tamaño del contenedor */
-    background-position: center; /* Centra la imagen */
-    background-repeat: no-repeat; /* Evita que se repita */
 }
 
 .section-title {
@@ -44,16 +39,11 @@
     background-color: #b71c1c;
 }
 
-@font-face {
-    font-family: 'titulos';
-    src: url('/assets/GameTitule.ttf') format('truetype'); /* CORREGIDO */
-    font-weight: normal;
-    font-style: normal;
-}
+
 
 h1 {
     font-size: 100vw;
-    font-family: 'titulos';
+    font-family: 'titulos',sans-serif;
 }
 .rooms-list{
 
@@ -94,14 +84,12 @@ h1 {
 
 }
 
-
 .room-input {
     padding: 10px;
     border-radius: 5px;
     border: none;
     font-size: 16px;
 }
-
 
 .create-button {
     padding: 10px 15px;

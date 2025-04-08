@@ -36,10 +36,11 @@ const Game = () => {
             <div>
                 <strong>Jugadores:</strong>
                 <ul>
-                    {players.map((p, idx) => (
-                        <li key={idx}>{p.username} - {p.character}</li>
+                    {players.map((p) => (
+                        <li key={p.username}>{p.username} - {p.character}</li>
                     ))}
                 </ul>
+
             </div>
             <div>
                 <strong>Tablero:</strong>
