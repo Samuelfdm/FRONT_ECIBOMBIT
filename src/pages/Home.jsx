@@ -1,6 +1,7 @@
 import { useMsal } from "@azure/msal-react";
 import { useNavigate } from "react-router-dom";
-import "../styles/Home.css"
+import "../style/Global.css";
+import "../style/Home.css";
 import Profile from "../components/Profile";
 
 const Home = () => {
@@ -21,7 +22,7 @@ const Home = () => {
 
   return (
       
-    <div className="home_container">
+    <div className="background-home">
       <h1 className="title">Ecibombit</h1>
       <Profile />
       <button onClick={handleLogin}>Iniciar Sesión</button>

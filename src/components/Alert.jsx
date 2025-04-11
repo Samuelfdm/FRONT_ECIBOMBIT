@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import '../styles/Alert.css';
+import '../style/Alert.css';
 
 const Alert = ({ message, type = 'error', onClose }) => {
   useEffect(() => {

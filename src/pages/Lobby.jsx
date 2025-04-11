@@ -4,7 +4,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useMsal } from "@azure/msal-react";
 import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import axios from "axios";
-import "../styles/Lobby.css";
+import "../style/Global.css";
+import "../style/Lobby.css";
 
 const charactersList = [
     { id: "bomber1", emoji: "/assets/character1.webp", name: "Bomber Azul" },
@@ -32,45 +33,65 @@ const ConfigPanel = ({ config, isOwner, onConfigChange }) => {
         <div className="config-panel">
             <h3>Configuración de la Sala</h3>
             <div className="config-item">
-                <label>Mapa:</label>
                 {isOwner ? (
-                    <select value={config.map} onChange={(e) => onConfigChange("map", e.target.value)}>
-                        <option value="default">Default</option>
-                        <option value="map1">Mapa 1</option>
-                        <option value="map2">Mapa 2</option>
-                        <option value="map3">Mapa 3</option>
-                    </select>
+                    <>
+                        <label htmlFor="map-select">Mapa:</label>
+                        <select
+                            id="map-select"
+                            value={config.map}
+                            onChange={(e) => onConfigChange("map", e.target.value)}
+                        >
+                            <option value="default">Default</option>
+                            <option value="map1">Mapa 1</option>
+                            <option value="map2">Mapa 2</option>
+                            <option value="map3">Mapa 3</option>
+                        </select>
+                    </>
                 ) : (
-                    <p><strong>Mapa:</strong> {config.map}</p>
+                    <>
+                        <label>Mapa:</label>
+                        <p><strong>Mapa:</strong> {config.map}</p>
+                    </>
                 )}
             </div>
             <div className="config-item">
-                <label>Tiempo (minutos):</label>
                 {isOwner ? (
-                    <select
-                        value={config.time}
-                        onChange={(e) => onConfigChange('time', parseInt(e.target.value))}
-                    >
-                        <option value="5">5</option>
-                        <option value="10">10</option>
-                        <option value="15">15</option>
-                    </select>
+                    <>
+                        <label htmlFor="time-select">Tiempo (minutos):</label>
+                        <select
+                            id="time-select"
+                            value={config.time}
+                            onChange={(e) => onConfigChange('time', parseInt(e.target.value))}
+                        >
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="15">15</option>
+                        </select>
+                    </>
                 ) : (
-                    <p><strong>Tiempo:</strong> {config.time}</p>
+                    <>
+                        <p id="config-time"><strong>Tiempo:</strong> {config.time}</p>
+                    </>
                 )}
             </div>
             <div className="config-item">
-                <label>Ítems especiales:</label>
                 {isOwner ? (
-                    <input
-                        type="range"
-                        min="0"
-                        max="5"
-                        value={config.items}
-                        onChange={(e) => onConfigChange('items', parseInt(e.target.value))}
-                    />
+                    <>
+                        <label htmlFor="items-range">Ítems especiales:</label>
+                        <input
+                            id="items-range"
+                            type="range"
+                            min="0"
+                            max="5"
+                            value={config.items}
+                            onChange={(e) => onConfigChange('items', parseInt(e.target.value))}
+                        />
+                    </>
                 ) : (
-                    <span>{config.items}</span>
+                    <>
+                        <label htmlFor="config-items">Ítems especiales:</label>
+                        <span id="config-items">{config.items}</span>
+                    </>
                 )}
             </div>
         </div>
@@ -83,7 +104,7 @@ const Lobby = () => {
     const { instance, accounts } = useMsal();
     const [username, setUserName] = useState(() => {
         return sessionStorage.getItem("userName") || "";
-    });
+    });    
     const [players, setPlayers] = useState({});
     const [characters, setCharacters] = useState({});
     const [ready, setReady] = useState({});
@@ -187,8 +208,6 @@ const Lobby = () => {
             if (data.config) {
                 setConfig(data.config);
             }
-            //setConfig(data.config || { map: "default", time: 5, items: 3 });
-            //setIsOwner(data.players[newSocket.id]?.isOwner || false);
             setIsLoading(false);
         };
 
@@ -213,8 +232,6 @@ const Lobby = () => {
             });
         });
 
-
-        // Limpieza
         return () => {
             console.log("Limpiando conexión socket...");
             newSocket.off("connect", handleConnect);
@@ -327,7 +344,7 @@ const Lobby = () => {
     }
 
     return (
-        <div className="lobby-container">
+        <div className="background-lobby">
             <button className="leave-room-button" onClick={leaveRoom}>
                 Salir de la sala
             </button>

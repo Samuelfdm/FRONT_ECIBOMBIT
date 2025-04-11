@@ -5,7 +5,8 @@ import { io } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Alert from "../components/Alert";
-import "../styles/Options.css";
+import "../style/Global.css";
+import "../style/Options.css";
 
 const Options = () => {
     const { instance, accounts } = useMsal();
@@ -170,16 +171,25 @@ const Options = () => {
 
         socket.emit("joinRoom", { room, username: userName }, (response) => {
             if (response?.success) {
+                if (response.isReconnect) {
+                    addAlert("Reconectado a la sala existente");
+                    // Opcional: Mostrar mensaje al usuario
+                }
                 navigate(`/lobby/${room}`);
             } else {
-                addAlert(response?.message || "Error al unirse a la sala");
+                if (response?.currentRoom) {
+                    addAlert(response.message, 'info');
+                    navigate(`/lobby/${response.currentRoom}`);
+                } else {
+                    addAlert(response?.message || "Error al unirse a la sala");
+                }
             }
             setIsLoading(false);
         });
     };
 
     return (
-        <div className="option-container"> 
+        <div className="background-options"> 
             <div className="header-section">
                 <h1 className="section-title">Bienvenido, {userName || "Cargando..."}</h1>
                 <button 
@@ -224,10 +234,10 @@ const Options = () => {
             ) : (
                 <div className="rooms-list">
                     {rooms.length > 0 ? (
-                        rooms.map((room, i) => (
+                        rooms.map((room) => (
                             <button 
                                 className="rooms" 
-                                key={i} 
+                                key={room}
                                 onClick={() => joinRoom(room)}
                                 disabled={isLoading}
                             >

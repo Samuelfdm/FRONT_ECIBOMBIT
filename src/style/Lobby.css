@@ -1,6 +1,8 @@
-/* Estilos base del contenedor */
-.lobby-container {
-    height: 100vh;
+.background-lobby  {
+    background-size: cover;
+    background-position: center; 
+    background-repeat: no-repeat;
+    height: 100vh; 
     width: 100vw;
     display: flex;
     flex-direction: column;
@@ -8,9 +10,6 @@
     color: white;
     padding: 20px;
     background-image: url("/assets/fondoLobby.png");
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
     overflow-y: auto;
 }
 
@@ -353,10 +352,4 @@
 
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(77, 34, 178, 0.9);
-}
-
-/* Fuentes */
-@font-face {
-    font-family: 'titulos';
-    src: url('/assets/GameTitule.ttf') format('truetype');
 }

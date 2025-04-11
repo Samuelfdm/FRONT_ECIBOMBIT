@@ -5,9 +5,9 @@ function Rooms({ rooms, selectedRoom, setSelectedRoom }) {
   return (
     <div className="rooms-wrapper">
       <div className="rooms-container">
-        {rooms.map((room, index) => (
+        {rooms.map((room) => (
           <button
-            key={index}
+            key={room}
             onClick={() => setSelectedRoom(room)}
             className={`room-button ${selectedRoom === room ? "selected" : ""}`}
           >
