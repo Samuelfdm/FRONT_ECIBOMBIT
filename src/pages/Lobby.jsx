@@ -4,8 +4,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useMsal } from "@azure/msal-react";
 import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import axios from "axios";
-import "../styles/Global.css";
-import "../styles/Lobby.css";
+import "../style/Global.css";
+import "../style/Lobby.css";
 
 const charactersList = [
     { id: "bomber1", emoji: "/assets/character1.webp", name: "Bomber Azul" },
@@ -344,7 +344,7 @@ const Lobby = () => {
     }
 
     return (
-        <div className="background">
+        <div className="background-lobby">
             <button className="leave-room-button" onClick={leaveRoom}>
                 Salir de la sala
             </button>

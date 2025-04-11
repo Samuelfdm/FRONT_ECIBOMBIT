@@ -1,0 +1,30 @@
+.progress-container {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-direction: row;
+  margin-top: -15px;
+  margin-bottom: -30px;
+}
+
+.progress-label {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.progress-bar-bg {
+  flex-grow: 1;
+  height: 4vh;
+  background-color: #f1ccc8d1;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  transition: width 0.4s ease-in-out;
+}
+
+.progress-bar-fill.purple {
+  background-color: #ffb6afbc;
+}
