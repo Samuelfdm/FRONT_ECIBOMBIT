@@ -353,17 +353,15 @@ const Lobby = () => {
                             <span>Jugadores listos:</span>
                             <span className="count">{readyPlayersCount}/{totalPlayers}</span>
                         </div>
-                        {/* Botón "Listo" ahora aquí (solo para no dueños) */}
-                        {!isOwner && (
-                            <button
-                                className={`ready-button ${ready[socket?.id] ? "active" : ""}`}
-                                onClick={setPlayerReady}
-                                disabled={!hasSelectedCharacter()}
-                            >
-                                <img src="/assets/ok.png" alt="Listo" className="ready-icon"/>
-                                {ready[socket?.id] ? "¡Listo!" : "Marcar como listo"}
-                            </button>
-                        )}
+                        {/* Botón "Listo" ahora aquí PARA EL DUEÑO Y NO DUEÑOS */}
+                        <button
+                            className={`ready-button ${ready[socket?.id] ? "active" : ""}`}
+                            onClick={setPlayerReady}
+                            disabled={!hasSelectedCharacter()}
+                        >
+                            <img src="/assets/ok.png" alt="Listo" className="ready-icon"/>
+                            {ready[socket?.id] ? "¡Listo!" : "Marcar como listo"}
+                        </button>
                         {/* Botón "Iniciar Partida" (solo para dueños) */}
                         {isOwner && (
                             <button
