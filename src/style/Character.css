@@ -1,18 +1,21 @@
-.container-player {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+
+
+.details{
   background: linear-gradient(135deg, #a66dd4b8, #784ba0c2);
   border-radius: 20px;
   padding: 1rem;
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
   color: white;
   height: 20%;
-  width:90%;
+  justify-content: center;
+  width: 95%;
+  display: flex;
+  flex-direction: row;
+  
 }
 
 .player-img img {
-  width: 100%;
+  width: auto;
   height: 100%;
   object-fit: cover;
   border-radius: 10%;
@@ -21,7 +24,7 @@
 }
 .player-img{
     height: 100%;
-    width: 40%;
+    width: 30%;
 }
 
 .info {
@@ -32,9 +35,21 @@
   margin-left: 1rem;
 }
 
+.nameUser{
+  align-items: center;
+  margin-bottom: 8.5%;
+  height: 15%;
+}
+
+.nameUser h2 {
+  font-size: 1.5vw;
+  font-weight: bold;
+  margin: 0;
+}
+
 .score {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   gap: 0.3rem;
 }
@@ -56,4 +71,5 @@
 .progress {
   display: flex;
   flex-direction: column;
+
 }

@@ -37,15 +37,24 @@ const Game = () => {
     return (
         <div className="background-global">
             <div className="playersPanel">
-                {players.map(player => (
+            {players.map(player => {
+                const characterData = charactersList.find(
+                    character => character.id === player.character
+                );
+
+                return (
                     <Character
-                    key={player.id} avatar={player.avatar}
-                    score={player.score}
-                    diamonds={player.diamonds}
-                    bombs={player.bombs}
-                    max={config.items}
+                        key={player.id}
+                        namePlayer={player.username}
+                        avatar={characterData?.emoji}
+                        score={player.score}
+                        kills={player.kills}
+                        bombs={player.bombs}
+                        max={config.items}
                     />
-                ))}
+                );
+            })}
+
             </div>
             <div className="board">
                 <strong>Tablero:</strong>
