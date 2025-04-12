@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import Character from "../components/Character";
+import PhaserGame from "../components/Game";
+
 import "../style/Global.css";
 import "../style/Game.css";
 
@@ -56,21 +58,9 @@ const Game = () => {
                     );
                 })}
             </div>
-            <div className="game-board">
-                {Array.from({length: board.rows}).flatMap((_, y) =>
-                    Array.from({length: board.columns}).map((_, x) => {
-                        const cell = board.cells.find(c => c.x === x && c.y === y) || {type: "EMPTY"};
-                        const className = `cell ${cell.type.toLowerCase()}`;
 
-                        return (
-                            <div key={`${x}-${y}`} className={className}>
-                                {cell.type === "PLAYER" && "🧍"}
-                                {cell.type === "ITEM" && "🎁"}
-                            </div>
-                        );
-                    })
-                )}
-            </div>
+            <PhaserGame />
+
         </div>
     );
 };
