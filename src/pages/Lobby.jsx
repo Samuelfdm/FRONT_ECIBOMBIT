@@ -8,10 +8,10 @@ import "../style/Global.css";
 import "../style/Lobby.css";
 
 const charactersList = [
-    { id: "bomber1", emoji: "/assets/character1.webp", name: "Bomber Azul" },
-    { id: "bomber2", emoji: "/assets/character2.webp", name: "Bomber Rojo" },
-    { id: "bomber3", emoji: "/assets/character3.webp", name: "Bomber Verde" },
-    { id: "bomber4", emoji: "/assets/character4.webp", name: "Bomber Robot" },
+    { id: "bomber1", emoji: "/assets/character1.webp", name: "Bomber Verde" },
+    { id: "bomber2", emoji: "/assets/character2.webp", name: "Bomber Naranja" },
+    { id: "bomber3", emoji: "/assets/character3.webp", name: "Bomber Azul" },
+    { id: "bomber4", emoji: "/assets/character4.webp", name: "Bomber Morado" },
 ];
 
 // Componente para el panel de configuración
@@ -218,6 +218,7 @@ const Lobby = () => {
 
         // Configurar listeners
         newSocket.on("connect", handleConnect);
+        newSocket.on("redirect", ({ to }) => {navigate(to);});
         newSocket.on("updateLobby", handleUpdateLobby);
         newSocket.on("roomClosed", handleRoomClosed);
         newSocket.on("gameStart", (gameData) => {
@@ -236,8 +237,9 @@ const Lobby = () => {
             console.log("Limpiando conexión socket...");
             newSocket.off("connect", handleConnect);
             newSocket.off("updateLobby", handleUpdateLobby);
-            newSocket.off("gameStart");
             newSocket.off("roomClosed", handleRoomClosed);
+            newSocket.off("gameStart");
+            newSocket.off("redirect");
             newSocket.disconnect();
         };
     }, [room, navigate, username]);
@@ -384,12 +386,14 @@ const Lobby = () => {
                             <button
                                 className={`start-button ${readyPlayersCount >= 2 ? 'active' : ''}`}
                                 onClick={startGame}
-                                disabled={readyPlayersCount < 2}
+                                disabled={readyPlayersCount < 2 || !ready[socket?.id]}
                             >
-                                {readyPlayersCount >= 2 ? (
+                                {(readyPlayersCount >= 2 && ready[socket?.id]) ? (
                                     "¡Iniciar Partida!"
                                 ) : (
-                                    `Esperando ${2 - readyPlayersCount} más`
+                                    readyPlayersCount < 2
+                                        ? `Esperando ${2 - readyPlayersCount} más`
+                                        : "Marca listo para iniciar"
                                 )}
                             </button>
                         )}
