@@ -305,7 +305,7 @@ const Lobby = () => {
         if (!socket || !isOwner) return;
 
         const readyPlayerIds = Object.keys(ready).filter((id) => ready[id]);
-        if (readyPlayerIds.length < 1) {
+        if (readyPlayerIds.length < 2) {
             alert("Se necesitan al menos 2 jugadores listos para iniciar.");
             return;
         }
@@ -382,14 +382,14 @@ const Lobby = () => {
                         {/* Botón "Iniciar Partida" (solo para dueños) */}
                         {isOwner && (
                             <button
-                                className={`start-button ${readyPlayersCount >= 1 ? 'active' : ''}`}
+                                className={`start-button ${readyPlayersCount >= 2 ? 'active' : ''}`}
                                 onClick={startGame}
-                                disabled={readyPlayersCount < 1}
+                                disabled={readyPlayersCount < 2}
                             >
-                                {readyPlayersCount >= 1 ? (
+                                {readyPlayersCount >= 2 ? (
                                     "¡Iniciar Partida!"
                                 ) : (
-                                    `Esperando ${1 - readyPlayersCount} más`
+                                    `Esperando ${2 - readyPlayersCount} más`
                                 )}
                             </button>
                         )}
