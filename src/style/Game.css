@@ -27,14 +27,16 @@
 }
 
 .game-board {
-    display: grid;
-    grid-template-columns: repeat(16, 30px); /* ajustable por columnas */
-    grid-template-rows: repeat(16, 30px);    /* ajustable por filas */
-    gap: 2px;
-    border: 2px solid #333;
-    background-color: #111;
-    padding: 8px;
-    margin: 0 auto;
+  flex-grow: 1;
+  height: 95%;
+  position: relative;
+  z-index: 1;
+  background-color: transparent;
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .cell {

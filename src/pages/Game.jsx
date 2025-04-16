@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import Character from "../components/Character";
-import PhaserGame from "../components/Game";
+import PhaserGame from "../components/Game"; 
 
 import "../style/Global.css";
 import "../style/Game.css";
@@ -58,9 +58,10 @@ const Game = () => {
                     );
                 })}
             </div>
-
-            <PhaserGame />
-
+            
+            <div className="game-board">
+                <PhaserGame />
+            </div>
         </div>
     );
 };
