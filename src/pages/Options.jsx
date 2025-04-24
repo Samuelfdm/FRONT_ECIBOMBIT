@@ -169,12 +169,8 @@ const Options = () => {
 
         setIsLoading(true);
 
-        socket.emit("joinRoom", { room, username: userName }, (response) => {
+        socket.emit("createRoom", { roomName: room, username: userName }, (response) => {
             if (response?.success) {
-                if (response.isReconnect) {
-                    addAlert("Reconectado a la sala existente");
-                    // Opcional: Mostrar mensaje al usuario
-                }
                 navigate(`/lobby/${room}`);
             } else {
                 if (response?.currentRoom) {
@@ -238,7 +234,7 @@ const Options = () => {
                             <button 
                                 className="rooms" 
                                 key={room}
-                                onClick={() => joinRoom(room)}
+                                onClick={() => navigate(`/lobby/${room}`)}
                                 disabled={isLoading}
                             >
                                 {room}
