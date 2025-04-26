@@ -303,7 +303,7 @@ const Lobby = () => {
         });
     };
 
-    const startGame = () => {
+    const startGame = async () => {
         if (!socket || !isOwner) return;
 
         const readyPlayerIds = Object.keys(ready).filter((id) => ready[id]);
@@ -322,7 +322,13 @@ const Lobby = () => {
             }))
         };
 
-        socket.emit("startGame", gamePayload, (response) => {
+        const tokenResponse = await instance.acquireTokenSilent({
+            scopes: ["User.Read"],
+            account: accounts[0],
+        });
+
+        console.log(tokenResponse.accessToken);
+        socket.emit("startGame", gamePayload, tokenResponse.accessToken, (response) => {
             if (!response?.success) {
                 alert(response.message || "No se pudo iniciar el juego.");
             }

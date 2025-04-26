@@ -14,6 +14,10 @@ const Options = () => {
     const [newRoom, setNewRoom] = useState("");
     const [userName, setUserName] = useState(() => {
         return sessionStorage.getItem('userName') || '';
+    });
+      // Estado para token JWT
+    const [jwtToken, setJwtToken] = useState(() => {
+        return sessionStorage.getItem('jwtToken') || null;
     }); 
     const [alerts, setAlerts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -24,6 +28,7 @@ const Options = () => {
     const handleLogout = () => {
         sessionStorage.removeItem('userName');
         sessionStorage.removeItem('userRegistered');
+        sessionStorage.removeItem('jwtToken')
         instance.logoutPopup({
             postLogoutRedirectUri: "/",
             mainWindowRedirectUri: "/"
@@ -93,19 +98,26 @@ const Options = () => {
                 return;
             }
 
-            const registerUserInBackend = async (name, email) => {
+            const registerUserInBackend = async (name, email, accessToken) => {
                 try {
+                    //console.log(accessToken);
                     await axios.post("http://localhost:8080/users/login", {
                         oid: accounts[0].homeAccountId,
                         username: name,
                         email: email
+                    }, {
+                        headers: {
+                            Authorization: `Bearer ${accessToken}`
+                        }
                     });
-                    sessionStorage.setItem('userRegistered', 'true'); // Marcar como registrado
+                    console.log("se mando el jwt")
+                    sessionStorage.setItem('userRegistered', 'true');
                 } catch (e) {
                     console.error("Error registrando usuario en backend:", e);
                     addAlert("Error al registrar tu sesión. Intenta de nuevo.");
                 }
             };
+            
 
             try {
                 const tokenResponse = await instance.acquireTokenSilent({
@@ -123,7 +135,7 @@ const Options = () => {
                 setUserName(name);
                 localStorage.setItem('userName', name);
 
-                await registerUserInBackend(name, email);
+                await registerUserInBackend(name, email, tokenResponse.accessToken);
             } catch (error) {
                 if (error instanceof InteractionRequiredAuthError) {
                     try {
