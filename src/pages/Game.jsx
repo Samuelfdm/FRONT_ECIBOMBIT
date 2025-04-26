@@ -17,14 +17,14 @@ const charactersList = [
 
 const Game = () => {
     const { instance, accounts } = useMsal();
-    const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
     const location = useLocation();
     const [config, setConfig] = useState(null);
     const [userName, setUserName] = useState(() => {
         return sessionStorage.getItem('userName') || '';
     }); 
-    const [players, setPlayers] = useState([]);
+    const [playersPanel, setPlayersPanel] = useState([]);
+    const [playersGame, setPlayersGame] = useState([]); 
     const [board, setBoard] = useState(null);
     const [gameId, setGameId] = useState(null);
     const [playerId, setPlayerId] = useState(null);
@@ -37,7 +37,8 @@ const Game = () => {
             return;
         }
         setConfig(location.state.initialConfig);
-        setPlayers(location.state.players);
+        setPlayersPanel(location.state.players); // 👈
+        setPlayersGame(location.state.players); 
         setBoard(location.state.board);
         setGameId(location.state.gameId);
     }, [location, navigate]);
@@ -136,6 +137,11 @@ const Game = () => {
                 });
             }
         });
+
+        newSocket.on("players", (updatedPlayers) => {
+            console.log("Recibidos nuevos players:", updatedPlayers);
+            setPlayersPanel(updatedPlayers);
+        });
     
         newSocket.on("connect_error", (err) => {
             console.error("Error de conexión:", err);
@@ -148,6 +154,7 @@ const Game = () => {
                 newSocket.off("connectToGame");
                 newSocket.off("connect");
                 newSocket.off("connect_error");
+                newSocket.off("players"); 
                 newSocket.disconnect();
             }
         };
@@ -161,7 +168,7 @@ const Game = () => {
     return (
         <div className="background-global">
             <div className="playersPanel">
-                {players.map(player => {
+                {playersPanel.map(player => {
                     const characterData = charactersList.find(
                         character => character.id === player.character
                     );
@@ -174,20 +181,22 @@ const Game = () => {
                             kills={player.kills}
                             bombs={player.bombs}
                             max={config?.items}
+                            
                         />
                     );
                 })}
             </div>
-            
+
             <div className="game-board">
-                <PhaserGame board={board} 
-                            players={players}
-                            socket={socket}
-                            playerId={(players.find(p => p.username === userName)).id}
-                            gameId={gameId}
+                <PhaserGame 
+                    board={board}
+                    players={playersGame}  // 👈 Estos players ya no cambian
+                    socket={socket}
+                    playerId={(playersGame.find(p => p.username === userName))?.id}
+                    gameId={gameId}
                 />
             </div>
-            
+
             
         </div>
     );
