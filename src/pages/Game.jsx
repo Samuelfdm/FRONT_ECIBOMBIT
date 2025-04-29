@@ -37,7 +37,7 @@ const Game = () => {
             return;
         }
         setConfig(location.state.initialConfig);
-        setPlayersPanel(location.state.players); // 👈
+        setPlayersPanel(location.state.players);
         setPlayersGame(location.state.players); 
         setBoard(location.state.board);
         setGameId(location.state.gameId);
@@ -73,17 +73,13 @@ const Game = () => {
                     scopes: ["User.Read"],
                     account: accounts[0],
                 });
-
                 const graphResponse = await axios.get("https://graph.microsoft.com/v1.0/me", {
                     headers: { Authorization: `Bearer ${tokenResponse.accessToken}` },
                 });
-
                 const name = graphResponse.data.displayName;
                 const email = graphResponse.data.mail || graphResponse.data.userPrincipalName;
-
                 setUserName(name);
                 localStorage.setItem('userName', name);
-
                 await registerUserInBackend(name, email);
             } catch (error) {
                 if (error instanceof InteractionRequiredAuthError) {
@@ -91,25 +87,19 @@ const Game = () => {
                         const tokenResponse = await instance.acquireTokenPopup({
                             scopes: ["User.Read"],
                         });
-
                         const graphResponse = await axios.get("https://graph.microsoft.com/v1.0/me", {
                             headers: { Authorization: `Bearer ${tokenResponse.accessToken}` },
                         });
-
                         const name = graphResponse.data.displayName;
                         const email = graphResponse.data.mail || graphResponse.data.userPrincipalName;
-
                         setUserName(name);
                         localStorage.setItem('userName', name);
-
                         await registerUserInBackend(name, email);
                     } catch (popupError) {
                         console.error("Error al obtener el nombre del usuario (popup):", popupError);
-                        
                     }
                 } else {
                     console.error("Error al obtener el nombre del usuario:", error);
-                    
                 }
             }
         };
@@ -132,7 +122,6 @@ const Game = () => {
                         console.log("Conectado al juego con éxito");
                     } else {
                         console.error("Error al conectar al juego:", response.message);
-                        
                     }
                 });
             }
@@ -159,7 +148,6 @@ const Game = () => {
             }
         };
     }, [gameId, userName]); // <- Agrega gameId y username como dependencias
-    
 
     if (!board || !board.rows || !board.columns || !board.cells) {
         return <div className="background-global">Cargando tablero...</div>;
@@ -186,18 +174,15 @@ const Game = () => {
                     );
                 })}
             </div>
-
             <div className="game-board">
                 <PhaserGame 
                     board={board}
-                    players={playersGame}  // 👈 Estos players ya no cambian
+                    players={playersGame}  // Estos players ya no cambian
                     socket={socket}
                     playerId={(playersGame.find(p => p.username === userName))?.id}
                     gameId={gameId}
                 />
             </div>
-
-            
         </div>
     );
 };

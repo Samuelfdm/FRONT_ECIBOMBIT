@@ -1,4 +1,4 @@
-import React, { useEffect,useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Phaser from "phaser";
 
 const charactersList = [
@@ -8,13 +8,11 @@ const charactersList = [
   { id: "bomber4", emoji: "/assets/character4.webp", name: "Bomber Morado" },
 ];
 
-const PhaserGame = ({ board, players, socket, playerId,gameId }) => {
+const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
   const gameRef = useRef(null);
-  let isDead = false;
+  const [isDead, setIsDead] = useState(false);
   let positionX = null;
   let positionY = null;
-
-
 
   useEffect(() => {
     if (!board || !players || !playerId || !socket) {
@@ -30,7 +28,6 @@ const PhaserGame = ({ board, players, socket, playerId,gameId }) => {
       switch (event.key) {
         case "ArrowLeft":
           keysPressed.left = true;
-          console.log("arro");
           break;
         case "ArrowRight":
           keysPressed.right = true;
@@ -44,7 +41,6 @@ const PhaserGame = ({ board, players, socket, playerId,gameId }) => {
         case " ":
           placeBomb();
           break;
-
         default:
           break;
       }
@@ -55,7 +51,6 @@ const PhaserGame = ({ board, players, socket, playerId,gameId }) => {
 
       switch (event.key) {
         case "ArrowLeft":
-          console.log("arro");
           keysPressed.left = false;
           break;
         case "ArrowRight":
@@ -76,15 +71,14 @@ const PhaserGame = ({ board, players, socket, playerId,gameId }) => {
     const maxHeight = window.innerHeight * 0.95;
     const tileSize = Math.min(maxWidth / board.columns, maxHeight / board.rows);
     const tileMargin = 2.1; // Añade un margen entre las celdas
-
     const config = {
       type: Phaser.AUTO,
       width: board.columns * (tileSize + tileMargin),
       height: board.rows * (tileSize + tileMargin),
       parent: "phaser-container",
-      pixelArt: false,
+      pixelArt: false,//
       transparent: true,
-      antialias: true,
+      antialias: true,//
       physics: {
         default: "arcade",
         arcade: {
@@ -92,9 +86,9 @@ const PhaserGame = ({ board, players, socket, playerId,gameId }) => {
           debug: true,
         },
       },
-      audio: {
-        noAudio: true,
-      },
+      audio: {//
+        noAudio: true,//
+      },//
       scene: {
         preload,
         create,
@@ -112,6 +106,21 @@ const PhaserGame = ({ board, players, socket, playerId,gameId }) => {
     let blocksGroup;
     let currentPlayer;
 
+    // Función para eliminar un jugador (sprite) de la escena
+    function eliminatePlayerSprite(victimId) {
+      if (!playerSprites[victimId]) return;
+
+      const sprite = playerSprites[victimId];
+      sprite.destroy();
+      delete playerSprites[victimId];
+
+      if (victimId === playerId) {
+        // Si soy yo quien murió
+        setIsDead(true);
+        currentPlayer = null;
+      }
+    }
+
     function preload() {
       players.forEach((player) => {
         const characterData = charactersList.find(
@@ -123,7 +132,6 @@ const PhaserGame = ({ board, players, socket, playerId,gameId }) => {
           console.warn(`No image found for character ID: ${player.character}`);
         }
       });
-
       this.load.image("wall", "/assets/moon.png");
       this.load.image("block", "/assets/naveEspacial.png");
     }
@@ -163,39 +171,33 @@ const PhaserGame = ({ board, players, socket, playerId,gameId }) => {
     
         const x = cell.x * (tileSize + tileMargin) + tileSize / 2;
         const y = cell.y * (tileSize + tileMargin) + tileSize / 2;
-        
-    
         const sprite = this.physics.add
           .sprite(x, y, player.character)
           .setDisplaySize(tileSize, tileSize)
-          .setBounce(0)
+          .setBounce(0)//
           .setCollideWorldBounds(true)
           .setDrag(0.95)
           .setMaxVelocity(100);
     
         playerSprites[player.id] = sprite;
-        console.log(player.id ,playerId);
        
         if (player.id === playerId) {
-          
           currentPlayer = sprite;
-          
-          positionX = currentPlayer.x;
-          positionY = currentPlayer.y;
+          positionX = currentPlayer.x;//
+          positionY = currentPlayer.y;//
         }
       });
     
       const otherPlayers = Object.values(playerSprites).filter((sprite) => sprite !== currentPlayer);
     
       this.physics.add.collider(currentPlayer, wallsGroup, () => {
-      });
+      });//
     
       this.physics.add.collider(currentPlayer, blocksGroup, () => {
-      });
+      });//
     
       this.physics.add.overlap(currentPlayer, otherPlayers, () => {
-        
-      });
+      });//
     
       window.addEventListener("keydown", handleKeyDown);
       window.addEventListener("keyup", handleKeyUp);
@@ -209,7 +211,6 @@ const PhaserGame = ({ board, players, socket, playerId,gameId }) => {
           jugadorRemoto.setPosition(pixelX, pixelY);
         }
       });
-    
     }
     
     function update() {
@@ -263,13 +264,11 @@ const PhaserGame = ({ board, players, socket, playerId,gameId }) => {
 
     const placeBomb = () => {
       if (!currentPlayer || !gameRef.current?.scene) return;
-    
       const scene = gameRef.current.scene.keys.default;
       const cellX = Math.floor(currentPlayer.x / (tileSize + tileMargin));
       const cellY = Math.floor(currentPlayer.y / (tileSize + tileMargin));
-    
       drawBomb(cellX, cellY); // Muestra la bomba localmente
-      socket.emit("bombPlaced", { playerId, x: cellX, y: cellY }); // Notifica al servidor
+      socket.emit("bombPlaced", { playerId, x: cellX, y: cellY, gameId });
     
       const explosionTiles = [
         { x: cellX, y: cellY },
@@ -288,7 +287,7 @@ const PhaserGame = ({ board, players, socket, playerId,gameId }) => {
         });
         handleExplosion(explosionTiles,true); 
       });
-    };    
+    };
 
     //Muestra el comportamiento de la bomba para el jugador que no lanzo la bomba
     const handleExplosion = (explosionTiles, isBombExploit) => {
@@ -311,27 +310,17 @@ const PhaserGame = ({ board, players, socket, playerId,gameId }) => {
           );
         }
 
+        // Verificar colisiones con jugadores
         Object.entries(playerSprites).forEach(([id, sprite]) => {
-          if(Math.abs(sprite.x - px) < tileSize / 2 &&
-             Math.abs(sprite.y - py) < tileSize / 2){
-              if (id === playerId) {
-                // muere el jugador con su propia bomba
-                sprite.destroy();
-                isDead = true; 
-                currentPlayer = null;
-                if (isBombExploit) {
-                  socket.emit("playerKilled", { gameId, killerId: playerId, victimId: playerId });
-                }
-              } else {
-    
-                // Si mata a otro jugador
-                sprite.destroy();
-                if (isBombExploit) {
-                  socket.emit("playerKilled", { gameId,  killerId: playerId, victimId: id });
-                }
-              }
-
+          if (
+              Math.abs(sprite.x - px) < tileSize / 2 &&
+              Math.abs(sprite.y - py) < tileSize / 2
+          ) {
+            eliminatePlayerSprite(id);
+            if (isBombExploit) {
+              socket.emit("playerKilled", { gameId, killerId: playerId, victimId: id, x, y });
             }
+          }
         });
         
         // Mostrar explosión
@@ -340,12 +329,10 @@ const PhaserGame = ({ board, players, socket, playerId,gameId }) => {
       });
     };
 
-
     const drawBomb = (x, y) => {
       const scene = gameRef.current.scene.keys.default;
       const px = x * (tileSize + tileMargin) + tileSize / 2;
       const py = y * (tileSize + tileMargin) + tileSize / 2;
-    
       const bomb = scene.add.circle(px, py, tileSize / 2 - 4, 0x000000);
       scene.time.delayedCall(2000, () => bomb.destroy()); // Se destruye cuando explota
     };
@@ -353,58 +340,46 @@ const PhaserGame = ({ board, players, socket, playerId,gameId }) => {
     socket.on("bombPlaced", ({ x, y }) => {
       drawBomb(x, y);
     });
-  
-    
+
     socket.on("bombExplodedClient", ({ explosionTiles }) => {
       handleExplosion(explosionTiles, false);
     });
 
-    socket.on("playerKilled", ({ murdererId, victimId}) => {
-      console.log("llego");
-      
+    socket.on("playerKilled", ({ killerId, victimId, x, y }) => {
+      console.log("PLAYERKILLED: ", victimId, " en ", x, y);
+      handleKill({ killerId, victimId, playerId, x, y });
     });
-    
-    function handleKill({ victimId, murdererId, playerId}) {
+
+    function handleKill({ killerId, victimId, playerId, x, y }) {
       const scene = gameRef.current.scene.keys.default;
 
-      Object.entries(playerSprites).forEach(([id, sprite]) => {
-          if (id === victimId) {
-              sprite.destroy();
-              delete playerSprites[id];
-          }
-      });
+      eliminatePlayerSprite(victimId);
 
-      if (playerId === victimId ) {
-        setIsDead(true);
+      if (playerId === victimId) {
         const centerMessage = scene.add.text(
-            scene.cameras.main.centerX, 
-            scene.cameras.main.centerY, 
-            `Fuiste eliminado por ${murdererId}`, 
+            scene.cameras.main.centerX,
+            scene.cameras.main.centerY,
+            `Fuiste eliminado por ${killerId}`,
             { font: '32px Arial', fill: '#FF0000', align: 'center' }
         );
-        centerMessage.setOrigin(0.5); 
+        centerMessage.setOrigin(0.5);
         scene.time.delayedCall(3000, () => {
-            centerMessage.destroy();
+          centerMessage.destroy();
         });
-  
-      } 
 
-      else if (playerId === murdererId) {
-        
-          const sideMessage = scene.add.text(
-              scene.cameras.main.width - 200, 
-              50, 
-              `¡Eliminaste a ${victimId}!`, 
-              { font: '32px Arial', fill: '#00FF00', align: 'right' }
-          );
-          setIsDead(true);
-          scene.time.delayedCall(3000, () => {
-              sideMessage.destroy();
-          });
+      } else if (playerId === killerId) {
+        const sideMessage = scene.add.text(
+            scene.cameras.main.width - 200,
+            50,
+            `¡Eliminaste a ${victimId}!`,
+            { font: '32px Arial', fill: '#00FF00', align: 'right' }
+        );
+        scene.time.delayedCall(3000, () => {
+          sideMessage.destroy();
+        });
       }
-  }
-  
-    
+    }
+
     if (gameRef.current) {
       gameRef.current.destroy(true);
     }
@@ -436,7 +411,7 @@ const PhaserGame = ({ board, players, socket, playerId,gameId }) => {
       socket.off("playerKilled");
       gameRef.current.destroy(true);
     };
-  }, [board, players, socket, playerId]);
+  }, [board, players, socket, playerId, gameId]);
 
   return (
     <div
