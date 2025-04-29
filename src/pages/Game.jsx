@@ -169,7 +169,6 @@ const Game = () => {
                             kills={player.kills}
                             bombs={player.bombs}
                             max={config?.items}
-                            
                         />
                     );
                 })}
