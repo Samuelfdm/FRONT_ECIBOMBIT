@@ -168,7 +168,7 @@ const Game = () => {
                             score={player.score}
                             kills={player.kills}
                             bombs={player.bombs}
-                            max={config?.items}
+                            isDead={player.dead}
                         />
                     );
                 })}

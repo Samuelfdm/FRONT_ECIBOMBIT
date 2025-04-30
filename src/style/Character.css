@@ -1,5 +1,3 @@
-
-
 .details{
   background: linear-gradient(135deg, #a66dd4b8, #784ba0c2);
   border-radius: 20px;
@@ -11,7 +9,6 @@
   width: 95%;
   display: flex;
   flex-direction: row;
-  
 }
 
 .player-img img {
@@ -47,20 +44,20 @@
   margin: 0;
 }
 
-.score {
+.progress {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 0.3rem;
 }
 
-.score h2 {
+.progress h2 {
   font-size: 1.7rem;
   font-weight: bold;
   margin: 0;
 }
 
-.score span {
+.progress span {
   font-size: 1.2rem;
   background-color: rgba(255, 255, 255, 0.2);
   padding: 0.4rem 0.9rem;
@@ -68,8 +65,8 @@
   font-weight: bold;
 }
 
-.progress {
-  display: flex;
-  flex-direction: column;
-
+.dead-player {
+  opacity: 0.4;
+  filter: grayscale(100%);
+  transition: all 0.4s ease;
 }

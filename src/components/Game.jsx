@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { useNavigate } from 'react-router-dom';
 import Phaser from "phaser";
 
 const charactersList = [
@@ -11,6 +12,7 @@ const charactersList = [
 const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
   const gameRef = useRef(null);
   const [isDead, setIsDead] = useState(false);
+  const navigate = useNavigate();
   let positionX = null;
   let positionY = null;
 
@@ -24,7 +26,6 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
 
     const handleKeyDown = (event) => {
       if (isDead) return;
-
       switch (event.key) {
         case "ArrowLeft":
           keysPressed.left = true;
@@ -48,7 +49,6 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
 
     const handleKeyUp = (event) => {
       if (isDead) return;
-
       switch (event.key) {
         case "ArrowLeft":
           keysPressed.left = false;
@@ -100,7 +100,6 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
       },
       fps: 120,
     };
-
     let playerSprites = {};
     let wallsGroup;
     let blocksGroup;
@@ -318,7 +317,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
           ) {
             eliminatePlayerSprite(id);
             if (isBombExploit) {
-              socket.emit("playerKilled", { gameId, killerId: playerId, victimId: id, x, y });
+              socket.emit("playerKilled", { gameId, killerId: playerId, victimId: id, playerId, x, y });
             }
           }
         });
@@ -345,40 +344,9 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
       handleExplosion(explosionTiles, false);
     });
 
-    socket.on("playerKilled", ({ killerId, victimId, x, y }) => {
-      console.log("PLAYERKILLED: ", victimId, " en ", x, y);
-      handleKill({ killerId, victimId, playerId, x, y });
+    socket.on("playerLeft", ({ playerId }) => {
+      eliminatePlayerSprite(playerId);
     });
-
-    function handleKill({ killerId, victimId, playerId, x, y }) {
-      const scene = gameRef.current.scene.keys.default;
-
-      eliminatePlayerSprite(victimId);
-
-      if (playerId === victimId) {
-        const centerMessage = scene.add.text(
-            scene.cameras.main.centerX,
-            scene.cameras.main.centerY,
-            `Fuiste eliminado por ${killerId}`,
-            { font: '32px Arial', fill: '#FF0000', align: 'center' }
-        );
-        centerMessage.setOrigin(0.5);
-        scene.time.delayedCall(3000, () => {
-          centerMessage.destroy();
-        });
-
-      } else if (playerId === killerId) {
-        const sideMessage = scene.add.text(
-            scene.cameras.main.width - 200,
-            50,
-            `¡Eliminaste a ${victimId}!`,
-            { font: '32px Arial', fill: '#00FF00', align: 'right' }
-        );
-        scene.time.delayedCall(3000, () => {
-          sideMessage.destroy();
-        });
-      }
-    }
 
     if (gameRef.current) {
       gameRef.current.destroy(true);
@@ -408,16 +376,49 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
       socket.off("playerMoved");
       socket.off("bombPlaced");
       socket.off("bombExplodedClient");
+      socket.off("playerLeft");
       socket.off("playerKilled");
       gameRef.current.destroy(true);
     };
   }, [board, players, socket, playerId, gameId]);
 
+  const handleLeaveGame = () => {
+    if (!socket || !gameId || !playerId) return;
+
+    const cell = board.cells.find(c => c.playerId === playerId);
+    const x = cell?.x ?? 0;
+    const y = cell?.y ?? 0;
+
+    socket.emit("leaveGame", { gameId, playerId, x, y }, () => {
+      navigate("/options"); // redirigir tras salir
+    });
+  };
+
   return (
-    <div
-      id="phaser-container"
-      style={{ width: "65vw", height: "95vh", overflow: "hidden", position: "relative" }}
-    ></div>
+      <div
+          id="phaser-container"
+          style={{width: "65vw", height: "95vh", overflow: "hidden", position: "relative"}}
+      >
+        <button
+            className="exit-button"
+            onClick={handleLeaveGame}
+            style={{
+              position: 'absolute',
+              top: '10px',
+              right: '10px',
+              backgroundColor: '#f44336',
+              color: 'white',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '10px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              zIndex: 999
+            }}
+        >
+          Salir del juego
+        </button>
+      </div>
   );
 };
 
