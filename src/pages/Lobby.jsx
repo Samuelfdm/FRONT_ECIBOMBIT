@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useRef, useState} from "react";
 import { io } from "socket.io-client";
 import { useParams, useNavigate } from "react-router-dom";
 import { useMsal } from "@azure/msal-react";
@@ -117,6 +117,7 @@ const Lobby = () => {
     };
     const [config, setConfig] = useState(DEFAULT_CONFIG);
     const [isOwner, setIsOwner] = useState(false);
+    const socketRef = useRef(null);
 
     // Obtener nombre de usuario de Microsoft Graph
     useEffect(() => {
@@ -172,8 +173,14 @@ const Lobby = () => {
     // Configurar socket y unirse a la sala cuando tengamos el nombre de usuario
     useEffect(() => {
         if (!username) return;
+        if (socketRef.current) return;
 
-        const newSocket = io("ws://localhost:3000");
+        const newSocket = io("ws://localhost:3000", {
+            reconnection: true,
+            reconnectionAttempts: 5,
+            reconnectionDelay: 1000,
+        });
+        socketRef.current = newSocket;
         setSocket(newSocket);
 
         const handleConnect = () => {
@@ -235,28 +242,17 @@ const Lobby = () => {
 
         return () => {
             console.log("Limpiando conexión socket...");
-            newSocket.off("connect", handleConnect);
-            newSocket.off("updateLobby", handleUpdateLobby);
-            newSocket.off("roomClosed", handleRoomClosed);
-            newSocket.off("gameStart");
-            newSocket.off("redirect");
-            newSocket.disconnect();
-        };
-    }, [room, navigate, username]);
-
-    useEffect(() => {
-        const handleBeforeUnload = (e) => {
-            if (socket && room && players) {
-                socket.emit("leaveRoom", { room });
+            if (socketRef.current) {
+                socketRef.current.off("connect", handleConnect);
+                socketRef.current.off("updateLobby", handleUpdateLobby);
+                socketRef.current.off("roomClosed", handleRoomClosed);
+                socketRef.current.off("gameStart");
+                socketRef.current.off("redirect");
+                socketRef.current.disconnect();
+                socketRef.current = null;
             }
         };
-
-        window.addEventListener("beforeunload", handleBeforeUnload);
-        return () => {
-            window.removeEventListener("beforeunload", handleBeforeUnload);
-            socket.disconnect()
-        };
-    }, [socket, room, players]);
+    }, [room, navigate, username]);
 
     const selectCharacter = (char) => {
         if (!socket?.connected) {
@@ -353,6 +349,7 @@ const Lobby = () => {
     };
 
     const readyPlayersCount = Object.values(ready).filter(Boolean).length;
+
     const totalPlayers = Object.keys(players).length;
 
     if (isLoading) {

@@ -395,7 +395,6 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload);
-      socket.disconnect()
     };
   }, [socket, gameId, playerId, board]);
 
@@ -407,7 +406,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
     const y = cell?.y ?? 0;
 
     socket.emit("leaveGame", { gameId, playerId, x, y }, () => {
-      navigate("/options"); // redirigir tras salir
+      navigate("/options");
     });
   };
 
