@@ -123,7 +123,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
     function preload() {
       players.forEach((player) => {
         const characterData = charactersList.find(
-          (character) => character.id === player.character
+            (character) => character.id === player.character
         );
         if (characterData) {
           this.load.image(player.character, characterData.emoji);
@@ -139,20 +139,20 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
       const background = this.add.graphics();
       background.fillStyle(0xb08cfe, 0.5);
       background.fillRoundedRect(
-        0,
-        0,
-        board.columns * (tileSize + tileMargin),
-        board.rows * (tileSize + tileMargin),
-        12
+          0,
+          0,
+          board.columns * (tileSize + tileMargin),
+          board.rows * (tileSize + tileMargin),
+          12
       );
-    
+
       wallsGroup = this.physics.add.staticGroup();
       blocksGroup = this.physics.add.staticGroup();
-    
+
       board.cells.forEach((cell) => {
         const x = cell.x * (tileSize + tileMargin);
         const y = cell.y * (tileSize + tileMargin);
-    
+
         if (cell.type === "WALL") {
           const wall = wallsGroup.create(x + tileSize / 2, y + tileSize / 2, "wall");
           wall.setDisplaySize(tileSize, tileSize);
@@ -163,44 +163,44 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
           block.refreshBody();
         }
       });
-    
+
       players.forEach((player) => {
         const cell = board.cells.find((c) => c.playerId === player.id);
         if (!cell) return;
-    
+
         const x = cell.x * (tileSize + tileMargin) + tileSize / 2;
         const y = cell.y * (tileSize + tileMargin) + tileSize / 2;
         const sprite = this.physics.add
-          .sprite(x, y, player.character)
-          .setDisplaySize(tileSize, tileSize)
-          .setBounce(0)//
-          .setCollideWorldBounds(true)
-          .setDrag(0.95)
-          .setMaxVelocity(100);
-    
+            .sprite(x, y, player.character)
+            .setDisplaySize(tileSize, tileSize)
+            .setBounce(0)//
+            .setCollideWorldBounds(true)
+            .setDrag(0.95)
+            .setMaxVelocity(100);
+
         playerSprites[player.id] = sprite;
-       
+
         if (player.id === playerId) {
           currentPlayer = sprite;
           positionX = currentPlayer.x;//
           positionY = currentPlayer.y;//
         }
       });
-    
+
       const otherPlayers = Object.values(playerSprites).filter((sprite) => sprite !== currentPlayer);
-    
+
       this.physics.add.collider(currentPlayer, wallsGroup, () => {
       });//
-    
+
       this.physics.add.collider(currentPlayer, blocksGroup, () => {
       });//
-    
+
       this.physics.add.overlap(currentPlayer, otherPlayers, () => {
       });//
-    
+
       window.addEventListener("keydown", handleKeyDown);
       window.addEventListener("keyup", handleKeyUp);
-    
+
       //Actualizacion de los movimientos de otros jugadores
       socket.on("playerMoved", ({ playerId, x, y, direction }) => {
         const jugadorRemoto = playerSprites[playerId];
@@ -211,7 +211,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
         }
       });
     }
-    
+
     function update() {
       if (!currentPlayer) return;
 
@@ -258,7 +258,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
         y: afterCellY,
         gameId,
       });
-      
+
     }
 
     const placeBomb = () => {
@@ -268,7 +268,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
       const cellY = Math.floor(currentPlayer.y / (tileSize + tileMargin));
       drawBomb(cellX, cellY); // Muestra la bomba localmente
       socket.emit("bombPlaced", { playerId, x: cellX, y: cellY, gameId });
-    
+
       const explosionTiles = [
         { x: cellX, y: cellY },
         { x: cellX - 1, y: cellY },
@@ -276,7 +276,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
         { x: cellX, y: cellY - 1 },
         { x: cellX, y: cellY + 1 },
       ];
-    
+
       // Explosión después de 2 segundos
       scene.time.delayedCall(2000, () => {
         socket.emit("bombExploded", {
@@ -284,28 +284,28 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
           explosionTiles,
           gameId,
         });
-        handleExplosion(explosionTiles,true); 
+        handleExplosion(explosionTiles,true);
       });
     };
 
     //Muestra el comportamiento de la bomba para el jugador que no lanzo la bomba
     const handleExplosion = (explosionTiles, isBombExploit) => {
-      const scene = gameRef.current.scene.keys.default;    
+      const scene = gameRef.current.scene.keys.default;
       explosionTiles.forEach(({ x, y }) => {
         const px = x * (tileSize + tileMargin) + tileSize / 2;
         const py = y * (tileSize + tileMargin) + tileSize / 2;
-    
+
         // Destruir bloques si hay
         const block = blocksGroup.getChildren().find((b) =>
-          Math.abs(b.x - px) < tileSize / 2 && Math.abs(b.y - py) < tileSize / 2
+            Math.abs(b.x - px) < tileSize / 2 && Math.abs(b.y - py) < tileSize / 2
         );
-    
+
         if (block) {
           block.destroy();
           board.cells = board.cells.map(cell =>
-            cell.x === x && cell.y === y && cell.type === "BLOCK"
-              ? { ...cell, type: "EMPTY" }
-              : cell
+              cell.x === x && cell.y === y && cell.type === "BLOCK"
+                  ? { ...cell, type: "EMPTY" }
+                  : cell
           );
         }
 
@@ -321,7 +321,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
             }
           }
         });
-        
+
         // Mostrar explosión
         const explosion = scene.add.rectangle(px, py, tileSize, tileSize, 0xff0000, 0.5);
         scene.time.delayedCall(300, () => explosion.destroy());
@@ -381,6 +381,23 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
       gameRef.current.destroy(true);
     };
   }, [board, players, socket, playerId, gameId]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (socket && gameId && playerId) {
+        const cell = board.cells.find(c => c.playerId === playerId);
+        const x = cell?.x ?? 0;
+        const y = cell?.y ?? 0;
+        socket.emit("leaveGame", { gameId, playerId, x, y });
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      socket.disconnect()
+    };
+  }, [socket, gameId, playerId, board]);
 
   const handleLeaveGame = () => {
     if (!socket || !gameId || !playerId) return;

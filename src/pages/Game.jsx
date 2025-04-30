@@ -149,6 +149,23 @@ const Game = () => {
         };
     }, [gameId, userName]); // <- Agrega gameId y username como dependencias
 
+    useEffect(() => {
+        const handlePopState = () => {
+            const cell = board?.cells?.find(c => c.playerId === playerId);
+            const x = cell?.x ?? 0;
+            const y = cell?.y ?? 0;
+            if (socket && gameId && playerId) {
+                socket.emit("leaveGame", { gameId, playerId, x, y });
+            }
+        };
+
+        window.addEventListener("popstate", handlePopState);
+        return () => {
+            window.removeEventListener("popstate", handlePopState);
+            socket.disconnect()
+        };
+    }, [socket, gameId, playerId, board]);
+
     if (!board || !board.rows || !board.columns || !board.cells) {
         return <div className="background-global">Cargando tablero...</div>;
     }

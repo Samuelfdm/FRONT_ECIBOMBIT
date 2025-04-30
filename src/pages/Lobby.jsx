@@ -244,6 +244,20 @@ const Lobby = () => {
         };
     }, [room, navigate, username]);
 
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            if (socket && room && players) {
+                socket.emit("leaveRoom", { room });
+            }
+        };
+
+        window.addEventListener("beforeunload", handleBeforeUnload);
+        return () => {
+            window.removeEventListener("beforeunload", handleBeforeUnload);
+            socket.disconnect()
+        };
+    }, [socket, room, players]);
+
     const selectCharacter = (char) => {
         if (!socket?.connected) {
             alert("Conexión no disponible");
