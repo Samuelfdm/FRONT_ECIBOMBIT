@@ -100,7 +100,7 @@ const Options = () => {
 
             const registerUserInBackend = async (name, email, accessToken) => {
                 try {
-                    //console.log(accessToken);
+                    console.log(accessToken);
                     await axios.post("http://localhost:8080/users/login", {
                         oid: accounts[0].homeAccountId,
                         username: name,
