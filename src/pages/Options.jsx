@@ -105,10 +105,6 @@ const Options = () => {
                         oid: accounts[0].homeAccountId,
                         username: name,
                         email: email
-                    }, {
-                        headers: {
-                            Authorization: `Bearer ${accessToken}`
-                        }
                     });
                     console.log("se mando el jwt")
                     sessionStorage.setItem('userRegistered', 'true');
@@ -132,10 +128,11 @@ const Options = () => {
                 const name = graphResponse.data.displayName;
                 const email = graphResponse.data.mail || graphResponse.data.userPrincipalName;
 
-                setUserName(name);
+                setUserName(name);w
                 localStorage.setItem('userName', name);
 
-                await registerUserInBackend(name, email, tokenResponse.accessToken);
+
+                await registerUserInBackend(name, email,instance.accessToken);
             } catch (error) {
                 if (error instanceof InteractionRequiredAuthError) {
                     try {
