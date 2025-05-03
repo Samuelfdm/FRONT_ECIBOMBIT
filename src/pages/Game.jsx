@@ -15,17 +15,26 @@ const charactersList = [
 
 const Game = () => {
     const navigate = useNavigate();
+    const [gameTimeLeft, setGameTimeLeft] = useState(null);
     const location = useLocation();
     const [config, setConfig] = useState(null);
     const [userName, setUserName] = useState(() => {
         return sessionStorage.getItem('userName') || '';
     }); 
+    const [isGameStarted, setIsGameStarted] = useState(false);
+    const [startCountdown, setStartCountdown] = useState(null);
     const [playersPanel, setPlayersPanel] = useState([]);
     const [playersGame, setPlayersGame] = useState([]); 
     const [board, setBoard] = useState(null);
     const [gameId, setGameId] = useState(null);
     const [playerId, setPlayerId] = useState(null);
     const [socket, setSocket] = useState(null);
+
+    const formatTime = (seconds) => {
+        const minutes = String(Math.floor(seconds / 60)).padStart(2, "0");
+        const secs = String(seconds % 60).padStart(2, "0");
+        return `${minutes}:${secs}`;
+    };
 
     useEffect(() => {
         if (!location.state) {
@@ -69,12 +78,36 @@ const Game = () => {
             console.error("Error de conexión:", err);
         });
     
+        newSocket.on("startTimerGame", ({ countdown }) => {
+            let time = countdown;
+            setStartCountdown(time);
+            const countdownInterval = setInterval(() => {
+                time -= 1;
+                setStartCountdown(time);
+                if (time === 0) {
+                    clearInterval(countdownInterval);
+                    setIsGameStarted(true);
+                    setStartCountdown(null);
+                }
+            }, 1000);
+        });
+
+        newSocket.on("gameTimerTick", ({ timeLeft }) => {
+            setGameTimeLeft(timeLeft);
+        });
+
+
+        
+
         setSocket(newSocket);
     
         return () => {
             if (newSocket) {
                 newSocket.off("connect");
                 newSocket.off("players");
+                newSocket.off("startTimerGame");
+                newSocket.off("gameTimerTick");
+                newSocket.off("playerDied");
                 newSocket.off("connect_error");
                 newSocket.disconnect();
             }
@@ -111,6 +144,11 @@ const Game = () => {
 
     return (
         <div className="background-global">
+            {startCountdown !== null && (
+                <div className="countdown-overlay">
+                    <h1>{startCountdown}</h1>
+                </div>
+            )}
             <div className="playersPanel">
                 {playersPanel.map(player => {
                     const characterData = charactersList.find(
@@ -128,15 +166,25 @@ const Game = () => {
                         />
                     );
                 })}
+
+                {gameTimeLeft !== null && (
+                    <div className="timer-box">
+                        <span>{formatTime(gameTimeLeft)}</span>
+                    </div>
+                )}
+
             </div>
             <div className="game-board">
                 <PhaserGame 
+                    key={isGameStarted ? 'game-started' : 'waiting'}
                     board={board}
-                    players={playersGame}  // Estos players ya no cambian
+                    players={playersGame}
                     socket={socket}
                     playerId={(playersGame.find(p => p.username === userName))?.id}
                     gameId={gameId}
+                    isGameStarted={isGameStarted}
                 />
+
             </div>
         </div>
     );

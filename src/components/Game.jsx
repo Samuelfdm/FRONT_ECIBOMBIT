@@ -9,19 +9,22 @@ const charactersList = [
   { id: "bomber4", emoji: "/assets/character4.webp", name: "Bomber Morado" },
 ];
 
-const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
+const PhaserGame = ({ board, players, socket, playerId, gameId,  isGameStarted  }) => {
   const gameRef = useRef(null);
   const [isDead, setIsDead] = useState(false);
   const navigate = useNavigate();
   let positionX = null;
   let positionY = null;
+  
 
   useEffect(() => {
+
+    
+
     if (!board || !players || !playerId || !socket) {
       console.warn("Missing required props:", { board, players, playerId, socket });
       return;
     }
-
     const keysPressed = { left: false, right: false, up: false, down: false };
 
     const handleKeyDown = (event) => {
@@ -66,6 +69,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
           break;
       }
     };
+  
 
     const maxWidth = window.innerWidth * 0.95;
     const maxHeight = window.innerHeight * 0.95;
@@ -201,6 +205,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
       window.addEventListener("keydown", handleKeyDown);
       window.addEventListener("keyup", handleKeyUp);
 
+
       //Actualizacion de los movimientos de otros jugadores
       socket.on("playerMoved", ({ playerId, x, y, direction }) => {
         const jugadorRemoto = playerSprites[playerId];
@@ -288,6 +293,21 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
       });
     };
 
+    function showGameMessage(scene, text) {
+      const message = scene.add.text(scene.cameras.main.centerX, scene.cameras.main.centerY, text, {
+        fontSize: '32px',
+        fill: '#fff',
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        padding: { x: 20, y: 10 },
+        align: 'center'
+      }).setOrigin(0.5);
+    
+      // Desaparece luego de 5 segundos
+      scene.time.delayedCall(5000, () => {
+        message.destroy();
+      });
+    }
+
     //Muestra el comportamiento de la bomba para el jugador que no lanzo la bomba
     const handleExplosion = (explosionTiles, isBombExploit) => {
       const scene = gameRef.current.scene.keys.default;
@@ -348,6 +368,31 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
       eliminatePlayerSprite(playerId);
     });
 
+    socket.on('playerDied', ({ victimId, killerId, victimUsername, killerUsername, suicide }) => {
+      const scene = gameRef.current.scene.keys.default;
+      if (playerId === victimId) {
+        if (suicide) {
+          showGameMessage(scene, `💀 Te has suicidado`);
+        } else {
+          showGameMessage(scene, `💀 Fuiste eliminado por ${killerUsername}`);
+        }
+      }
+    });
+
+    socket.on('gameOver', ({ winners, winnerUsernames, reason }) => {
+      const scene = gameRef.current.scene.keys.default;
+    
+      if (winners && winners.includes(playerId)) {
+        showGameMessage(scene, `🏆 ¡Ganaste! ${reason}`);
+      } else if (winnerUsernames && winnerUsernames.length > 0) {
+        const names = winnerUsernames.join(', ');
+        showGameMessage(scene, `🏁 Ganador${winnerUsernames.length > 1 ? 'es' : ''}: ${names}. ${reason}`);
+      } else {
+        showGameMessage(scene, `📢 ${reason}`);
+      }
+    });
+    
+
     if (gameRef.current) {
       gameRef.current.destroy(true);
     }
@@ -365,9 +410,10 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
         canvas.style.transformOrigin = "top left";
       }
     };
+    resizeGame();
 
     window.addEventListener("resize", resizeGame);
-    resizeGame();
+    
 
     return () => {
       window.removeEventListener("resize", resizeGame);
@@ -378,6 +424,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId }) => {
       socket.off("bombExplodedClient");
       socket.off("playerLeft");
       socket.off("playerKilled");
+      socket.off("playerDied");
       gameRef.current.destroy(true);
     };
   }, [board, players, socket, playerId, gameId]);
