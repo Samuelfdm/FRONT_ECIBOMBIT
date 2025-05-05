@@ -1,0 +1,55 @@
+/* GameP.css - Estilos para el componente Phaser Game */
+.phaser-game-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: transparent;
+}
+
+/* Game.css - Estilos para la página Game */
+.background-global {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  color: white;
+  background-image: url("/assets/fondoGame.jpg");
+  gap: 1vw;
+  padding: 10px;
+  margin: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.playersPanel {
+  width: 25%;
+  height: 95%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 1rem;
+  background-color: #b08cfe5e;
+  border-radius: 16px;
+  flex-shrink: 0;
+}
+
+.game-board {
+  flex-grow: 1;
+  height: 95%;
+  position: relative;
+  z-index: 1;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

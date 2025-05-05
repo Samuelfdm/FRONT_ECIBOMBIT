@@ -1,0 +1,72 @@
+.details{
+  background: linear-gradient(135deg, #a66dd4b8, #784ba0c2);
+  border-radius: 20px;
+  padding: 1rem;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+  color: white;
+  height: 20%;
+  justify-content: center;
+  width: 95%;
+  display: flex;
+  flex-direction: row;
+}
+
+.player-img img {
+  width: auto;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10%;
+  border: 2px solid white;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+}
+.player-img{
+    height: 100%;
+    width: 30%;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-grow: 1;
+  margin-left: 1rem;
+}
+
+.nameUser{
+  align-items: center;
+  margin-bottom: 8.5%;
+  height: 15%;
+}
+
+.nameUser h2 {
+  font-size: 1.5vw;
+  font-weight: bold;
+  margin: 0;
+}
+
+.progress {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.progress h2 {
+  font-size: 1.7rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+.progress span {
+  font-size: 1.2rem;
+  background-color: rgba(255, 255, 255, 0.2);
+  padding: 0.4rem 0.9rem;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+.dead-player {
+  opacity: 0.4;
+  filter: grayscale(100%);
+  transition: all 0.4s ease;
+}

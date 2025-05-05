@@ -1,15 +1,17 @@
-.home_container {
+.background-home {
+    background-size: cover;
+    background-position: center; 
+    background-repeat: no-repeat;
+    height: 100vh; 
+    width: 100vw;
     display: flex;
     flex-direction: column;
     align-items: center;
+    background-position: center; 
     justify-content: center;
-    height: 100vh; 
-    width: 100vw; 
-    background-image: url("/assets/fondo.jpeg");
-    background-size: cover; 
-    background-position: center;
+    background-image: url("/assets/fondoHome.jpg");
 }
-  
+
 .profile-container {
     display: flex;
     flex-direction: column;
@@ -18,8 +20,10 @@
 }
 
 .title{
-    font-size: 10vh;
+    font-size: 10vw;
     color: blanchedalmond;
+    font-family: 'titulos',sans-serif;
+    margin: 1px;
 }
   
 .profile-image {

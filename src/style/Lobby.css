@@ -1,0 +1,355 @@
+.background-lobby  {
+    background-size: cover;
+    background-position: center; 
+    background-repeat: no-repeat;
+    height: 100vh; 
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: white;
+    padding: 20px;
+    background-image: url("/assets/fondoLobby.png");
+    overflow-y: auto;
+}
+
+/* Botón de salir */
+.leave-room-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 10px 15px;
+    background-color: #f44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.leave-room-button:hover {
+    background-color: #d32f2f;
+    transform: scale(1.05);
+}
+
+/* Estructura principal */
+.lobby-content {
+    display: flex;
+    width: 90%;
+    max-width: 1200px;
+    gap: 30px; /* Aumentar gap entre paneles */
+    margin-top: 30px;
+}
+
+.left-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 25px; /* Más espacio entre secciones */
+    min-width: 320px; /* Ancho mínimo un poco mayor */
+}
+
+.right-panel {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+/* Panel de configuración */
+.config-panel {
+    background: rgba(77, 34, 178, 0.5);
+    padding: 20px;
+    border-radius: 15px;
+    backdrop-filter: blur(5px);
+}
+
+.config-item {
+    margin-bottom: 15px;
+}
+
+.config-item label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.config-item select,
+.config-item input[type="range"] {
+    width: 100%;
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+/* Estado del juego */
+.game-status {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Espacio entre contador y botón */
+    background: rgba(77, 34, 178, 0.5);
+    padding: 20px; /* Aumentar padding para mejor espaciado */
+    border-radius: 15px;
+    backdrop-filter: blur(5px);
+}
+
+.ready-count {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.ready-count .count {
+    font-weight: bold;
+    color: #4CAF50;
+}
+
+/* Botones */
+.start-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.start-button:hover:not(:disabled) {
+    background-color: #388E3C;
+    transform: scale(1.02);
+}
+
+.start-button:disabled {
+    background-color: #616161;
+    cursor: not-allowed;
+}
+
+.ready-button {
+    width: 100%;
+    max-width: 200px;
+    padding: 8px;
+    background-color: rgba(76, 175, 80, 0.7); /* Más visible */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold; /* Coherencia con start-button */
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+.ready-icon {
+    width: 100px;  /* Tamaño fijo para el ícono */
+    height: 100px;
+    object-fit: contain; /* Asegura que la imagen se escale correctamente */
+}
+
+.ready-button:hover:not(:disabled) {
+    background-color: rgba(76, 175, 80, 0.5);
+    transform: scale(1.02); /* Efecto hover similar a start-button */
+}
+
+.ready-button.active {
+    background-color: rgba(76, 175, 80, 0.7);
+}
+
+.ready-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Información del jugador */
+.player-info {
+    background: rgba(77, 34, 178, 0.5);
+    padding: 20px;
+    border-radius: 15px;
+    backdrop-filter: blur(5px);
+    margin-bottom: 20px;
+}
+
+.selected-character {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 15px;
+    background: rgba(77, 34, 178, 0.3); /* Fondo para destacar */
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.character-preview {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 5px;
+}
+
+/* Selección de personajes */
+.characters-container {
+    background: rgba(77, 34, 178, 0.5);
+    padding: 20px;
+    border-radius: 15px;
+    backdrop-filter: blur(5px);
+}
+
+.characters-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.character-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid transparent;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.character-option:hover:not(.taken) {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.character-option.selected {
+    border-color: #4CAF50;
+    background: rgba(76, 175, 80, 0.2);
+}
+
+.character-option.taken {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.taken-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: #f44336;
+    color: white;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-size: 0.7rem;
+}
+
+.character-avatar {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    margin-bottom: 5px;
+}
+
+/* Lista de jugadores */
+.players-container {
+    background: rgba(77, 34, 178, 0.5);
+    padding: 20px;
+    border-radius: 15px;
+    backdrop-filter: blur(5px);
+}
+
+.players-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.player-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.player-card.you {
+    border-left: 3px solid #4CAF50;
+}
+
+.player-card.owner {
+    background: rgba(255, 215, 0, 0.1);
+}
+
+.player-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.owner-icon {
+    color: #FFD700;
+}
+
+.ready-status {
+    font-weight: bold;
+}
+
+.ready-status.ready {
+    color: #4CAF50;
+}
+
+.ready-status.not-ready {
+    color: #f44336;
+}
+
+/* Elementos varios */
+.owner-badge {
+    background-color: rgba(255, 215, 0, 0.2);
+    color: #FFD700;
+    padding: 5px 15px;
+    border-radius: 15px;
+    border: 1px solid #FFD700;
+    font-weight: bold;
+    margin: 10px 0;
+}
+
+.room-title {
+    font-family: 'titulos', sans-serif;
+    font-size: 2.8rem;
+    margin: 20px 0;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.7);
+}
+
+.subtitle {
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(77, 34, 178, 0.7);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(77, 34, 178, 0.9);
+}
