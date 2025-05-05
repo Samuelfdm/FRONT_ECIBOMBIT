@@ -18,14 +18,13 @@ jobs:
           node-version: 20
 
       - run: npm install
-        working-directory: frontend
 
   sonarcloud:
     needs: build
     uses: ZayraGS1403/central-pipelines/.github/workflows/sonarcloud-analysis.yml@v0.1.1
     with:
       node-version: '20'
-      branch-name: 'main'
+      branch-name: ${{ github.ref_name }}
     secrets:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}

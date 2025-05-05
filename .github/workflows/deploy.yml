@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - run: docker build -t myregistry.azurecr.io/frontend ./frontend
+      - run: docker build -t myregistry.azurecr.io/frontend .
       - run: echo "${{ secrets.ACR_PASSWORD }}" | docker login myregistry.azurecr.io -u ${{ secrets.ACR_USERNAME }} --password-stdin
       - run: docker push myregistry.azurecr.io/frontend
 
