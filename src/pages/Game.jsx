@@ -29,12 +29,24 @@ const Game = () => {
     const [gameId, setGameId] = useState(null);
     const [playerId, setPlayerId] = useState(null);
     const [socket, setSocket] = useState(null);
+    const [deathMessage, setDeathMessage] = useState(null);
+    const [showExitButton, setShowExitButton] = useState(false); // Solo para el jugador eliminado
+    const [gameOverMessage, setGameOverMessage] = useState(null); // Para todos al finalizar la partida
 
     const formatTime = (seconds) => {
         const minutes = String(Math.floor(seconds / 60)).padStart(2, "0");
         const secs = String(seconds % 60).padStart(2, "0");
         return `${minutes}:${secs}`;
     };
+
+    useEffect(() => {
+        if (deathMessage && !showExitButton) {
+          const timer = setTimeout(() => {
+            setDeathMessage(null);
+          }, 3000);
+          return () => clearTimeout(timer);
+        }
+      }, [deathMessage, showExitButton]);
 
     useEffect(() => {
         if (!location.state) {
@@ -96,8 +108,29 @@ const Game = () => {
             setGameTimeLeft(timeLeft);
         });
 
-
+        // Cuando muere el jugador
+        newSocket.on('playerDied', ({ victimId, killerUsername, suicide }) => {
+            if (playerId === victimId) {
+            const msg = suicide ? "💀 Te has suicidado" : `💀 Fuiste eliminado por ${killerUsername}`;
+            setDeathMessage(msg);
+            }
+        });
         
+        // Cuando termina el juego
+        newSocket.on('gameOver', ({ winners, winnerUsernames, reason }) => {
+            console.log(winners, winnerUsernames);
+            const message = winners && winners.length > 0
+                ? `🏆 Ganador${winners.length > 1 ? 'es' : ''}: ${winnerUsernames.join(', ')}`
+                : "🏁 Fin del juego";
+        
+            setGameOverMessage(message);
+        
+            setTimeout(() => {
+                navigate("/options");
+            }, 7000);
+        });
+        
+  
 
         setSocket(newSocket);
     
@@ -149,6 +182,22 @@ const Game = () => {
                     <h1>{startCountdown}</h1>
                 </div>
             )}
+
+            {deathMessage && (
+                <div className="countdown-overlay">
+                    <h1>{deathMessage}</h1>
+                    {showExitButton && (
+                    <button onClick={() => navigate(`/options`)}>Salir</button>
+                    )}
+                </div>
+            )}
+
+            {gameOverMessage && (
+            <div className="gameOver">
+                <h1>{gameOverMessage}</h1>
+            </div>
+            )}
+
             <div className="playersPanel">
                 {playersPanel.map(player => {
                     const characterData = charactersList.find(
@@ -176,13 +225,11 @@ const Game = () => {
             </div>
             <div className="game-board">
                 <PhaserGame 
-                    key={isGameStarted ? 'game-started' : 'waiting'}
                     board={board}
                     players={playersGame}
                     socket={socket}
                     playerId={(playersGame.find(p => p.username === userName))?.id}
                     gameId={gameId}
-                    isGameStarted={isGameStarted}
                 />
 
             </div>

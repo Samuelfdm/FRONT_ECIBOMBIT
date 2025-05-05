@@ -87,7 +87,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId,  isGameStarted  
         default: "arcade",
         arcade: {
           gravity: { y: 0 },
-          debug: true,
+          debug: false,
         },
       },
       audio: {//
@@ -345,6 +345,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId,  isGameStarted  
         // Mostrar explosión
         const explosion = scene.add.rectangle(px, py, tileSize, tileSize, 0xff0000, 0.5);
         scene.time.delayedCall(300, () => explosion.destroy());
+
       });
     };
 
@@ -376,19 +377,6 @@ const PhaserGame = ({ board, players, socket, playerId, gameId,  isGameStarted  
         } else {
           showGameMessage(scene, `💀 Fuiste eliminado por ${killerUsername}`);
         }
-      }
-    });
-
-    socket.on('gameOver', ({ winners, winnerUsernames, reason }) => {
-      const scene = gameRef.current.scene.keys.default;
-    
-      if (winners && winners.includes(playerId)) {
-        showGameMessage(scene, `🏆 ¡Ganaste! ${reason}`);
-      } else if (winnerUsernames && winnerUsernames.length > 0) {
-        const names = winnerUsernames.join(', ');
-        showGameMessage(scene, `🏁 Ganador${winnerUsernames.length > 1 ? 'es' : ''}: ${names}. ${reason}`);
-      } else {
-        showGameMessage(scene, `📢 ${reason}`);
       }
     });
     
