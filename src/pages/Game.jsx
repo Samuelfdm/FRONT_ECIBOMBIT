@@ -7,10 +7,10 @@ import "../style/Global.css";
 import "../style/Game.css";
 
 const charactersList = [
-    { id: "bomber1", emoji: "/assets/character1.webp", name: "Bomber Verde" },
-    { id: "bomber2", emoji: "/assets/character2.webp", name: "Bomber Naranja" },
-    { id: "bomber3", emoji: "/assets/character3.webp", name: "Bomber Azul" },
-    { id: "bomber4", emoji: "/assets/character4.webp", name: "Bomber Morado" },
+    { id: "bomber1", emoji: "/assets/character1.png", name: "Bomber Verde" },
+    { id: "bomber2", emoji: "/assets/character2.png", name: "Bomber Naranja" },
+    { id: "bomber3", emoji: "/assets/character3.png", name: "Bomber Azul" },
+    { id: "bomber4", emoji: "/assets/character4.png", name: "Bomber Morado" },
 ];
 
 const Game = () => {
@@ -117,18 +117,23 @@ const Game = () => {
         });
         
         // Cuando termina el juego
-        newSocket.on('gameOver', ({ winners, winnerUsernames, reason }) => {
-            console.log(winners, winnerUsernames);
-            const message = winners && winners.length > 0
-                ? `🏆 Ganador${winners.length > 1 ? 'es' : ''}: ${winnerUsernames.join(', ')}`
-                : "🏁 Fin del juego";
-        
+        newSocket.on('gameOver', ({winnerUsernames, reason }) => {
+            console.log(winnerUsernames);
+            
+            let message;
+            if (!winnerUsernames || winnerUsernames.length === 0) {
+                message = "🏁 Fin del juego";
+            } else if (winnerUsernames.length === 1) {
+                message = `🏆💣 ${winnerUsernames[0]}`;
+            } else {
+                message = `🏆💣 ${winnerUsernames.join(', ')}`;
+            }
             setGameOverMessage(message);
-        
             setTimeout(() => {
                 navigate("/options");
             }, 7000);
         });
+        
         
   
 
