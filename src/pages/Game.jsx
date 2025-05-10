@@ -2,16 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import Character from "../components/Character";
 import PhaserGame from "../components/Game";
+import { charactersList } from '../constants/character';
 import { io } from "socket.io-client";
 import "../style/Global.css";
 import "../style/Game.css";
 
-const charactersList = [
-    { id: "bomber1", emoji: "/assets/character1.png", name: "Bomber Verde" },
-    { id: "bomber2", emoji: "/assets/character2.png", name: "Bomber Naranja" },
-    { id: "bomber3", emoji: "/assets/character3.png", name: "Bomber Azul" },
-    { id: "bomber4", emoji: "/assets/character4.png", name: "Bomber Morado" },
-];
 
 const Game = () => {
     const navigate = useNavigate();
@@ -130,7 +125,7 @@ const Game = () => {
             }
             setGameOverMessage(message);
             setTimeout(() => {
-                navigate("/options");
+                navigate(`/statistics/${gameId}`);
             }, 7000);
         });
         
