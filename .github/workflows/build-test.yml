@@ -62,6 +62,7 @@ jobs:
               --name front-client \
               --resource-group BOMBIT-RG \
               --image ${{ secrets.ACR_NAME }}.azurecr.io/front-client:latest \
+              --registry-identity "system" \
               --set-env-vars FRONTEND_URL=${{ secrets.FRONTEND_URL }} BACKEND_URL=${{ secrets.BACKEND_URL }} WEBSOCKET_URL=${{ secrets.WEBSOCKET_URL }}
 
 #  sonarcloud:
