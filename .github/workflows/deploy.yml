@@ -2,7 +2,7 @@ name: Deploy - Frontend EciBombit
 
 on:
   workflow_run:
-    workflows: [Build and Push - Frontend EciBombit]
+    workflows: ["Build and Push - Frontend EciBombit"]
     types:
       - completed
 
