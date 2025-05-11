@@ -36,7 +36,6 @@ jobs:
 
       - name: Build and push Docker image (Nginx)
         run: |
-          az acr login --name ${{ secrets.ACR_NAME }}
           docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/front-client:latest .
           docker push ${{ secrets.ACR_NAME }}.azurecr.io/front-client:latest
 
