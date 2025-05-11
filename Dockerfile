@@ -1,4 +1,4 @@
-# Dockerfile - frontend
+# Dockerfile - frontend 1
 FROM node:20 AS builder
 WORKDIR /app
 COPY . .
