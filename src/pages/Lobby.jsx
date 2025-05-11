@@ -6,6 +6,8 @@ import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import axios from "axios";
 import "../style/Global.css";
 import "../style/Lobby.css";
+//const websocketApi = import.meta.env.WEBSOCKET_URL || 'ws://localhost:3000';
+const websocketApi = process.env.WEBSOCKET_URL || 'ws://localhost:3000';
 
 const charactersList = [
     { id: "bomber1", emoji: "/assets/character1.webp", name: "Bomber Verde" },
@@ -174,8 +176,7 @@ const Lobby = () => {
     useEffect(() => {
         if (!username) return;
         if (socketRef.current) return;
-
-        const newSocket = io("ws://localhost:3000", {
+        const newSocket = io(websocketApi, {
             reconnection: true,
             reconnectionAttempts: 5,
             reconnectionDelay: 1000,

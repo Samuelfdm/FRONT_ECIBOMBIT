@@ -5,6 +5,8 @@ import PhaserGame from "../components/Game";
 import { io } from "socket.io-client";
 import "../style/Global.css";
 import "../style/Game.css";
+//const websocketApi = import.meta.env.WEBSOCKET_URL || 'ws://localhost:3000';
+const websocketApi = process.env.WEBSOCKET_URL || 'ws://localhost:3000';
 
 const charactersList = [
     { id: "bomber1", emoji: "/assets/character1.webp", name: "Bomber Verde" },
@@ -20,7 +22,7 @@ const Game = () => {
     const [config, setConfig] = useState(null);
     const [userName, setUserName] = useState(() => {
         return sessionStorage.getItem('userName') || '';
-    }); 
+    });
     const [isGameStarted, setIsGameStarted] = useState(false);
     const [startCountdown, setStartCountdown] = useState(null);
     const [playersPanel, setPlayersPanel] = useState([]);
@@ -49,8 +51,8 @@ const Game = () => {
         setGameId(location.state.gameId);
     }, [location, navigate]);
 
-    useEffect(() => {
-        const newSocket = io("ws://localhost:3000", {
+    useEffect(() => { //antes io("ws://localhost:3000")
+        const newSocket = io(websocketApi, {
             reconnection: true,
             reconnectionAttempts: 5,
             reconnectionDelay: 1000,
@@ -95,9 +97,6 @@ const Game = () => {
         newSocket.on("gameTimerTick", ({ timeLeft }) => {
             setGameTimeLeft(timeLeft);
         });
-
-
-        
 
         setSocket(newSocket);
     

@@ -18,9 +18,6 @@ const PhaserGame = ({ board, players, socket, playerId, gameId,  isGameStarted  
   
 
   useEffect(() => {
-
-    
-
     if (!board || !players || !playerId || !socket) {
       console.warn("Missing required props:", { board, players, playerId, socket });
       return;
@@ -69,7 +66,6 @@ const PhaserGame = ({ board, players, socket, playerId, gameId,  isGameStarted  
           break;
       }
     };
-  
 
     const maxWidth = window.innerWidth * 0.95;
     const maxHeight = window.innerHeight * 0.95;

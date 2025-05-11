@@ -1,0 +1,36 @@
+name: Deploy - Frontend EciBombit
+
+on:
+  workflow_run:
+    workflows: [Build and Push - Frontend EciBombit]
+    types:
+      - completed
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'Success' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to Azure Container App
+        uses: azure/cli@v1
+        with:
+          az_cli_version: "2.72.0"
+          inlineScript: |
+            az containerapp update \
+              --name front-client \
+              --resource-group BOMBIT-RG \
+              --image ${{ secrets.ACR_NAME }}.azurecr.io/front-client:latest \
+              --set-env-vars FRONTEND_URL=${{ secrets.FRONTEND_URL }} BACKEND_URL=${{ secrets.BACKEND_URL }} WEBSOCKET_URL=${{ secrets.WEBSOCKET_URL }}
