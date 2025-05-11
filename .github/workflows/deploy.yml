@@ -2,7 +2,8 @@ name: Deploy - Frontend EciBombit
 
 on:
   workflow_run:
-    workflows: ["Build and Push - Frontend EciBombit"]
+    workflows:
+      - build-test.yml
     types:
       - completed
 
