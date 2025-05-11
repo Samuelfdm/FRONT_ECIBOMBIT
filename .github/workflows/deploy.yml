@@ -13,7 +13,7 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ needs.build.outputs.build_status == 'success' }}
+    if: ${{ needs.build.result == 'success' }}
     steps:
       - uses: actions/checkout@v4
 
