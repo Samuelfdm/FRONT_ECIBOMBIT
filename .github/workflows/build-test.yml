@@ -40,11 +40,35 @@ jobs:
           docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/front-client:latest .
           docker push ${{ secrets.ACR_NAME }}.azurecr.io/front-client:latest
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to Azure Container App
+        uses: azure/cli@v1
+        with:
+          az_cli_version: "2.72.0"
+          inlineScript: |
+            az containerapp update \
+              --name front-client \
+              --resource-group BOMBIT-RG \
+              --image ${{ secrets.ACR_NAME }}.azurecr.io/front-client:latest \
+              --set-env-vars FRONTEND_URL=${{ secrets.FRONTEND_URL }} BACKEND_URL=${{ secrets.BACKEND_URL }} WEBSOCKET_URL=${{ secrets.WEBSOCKET_URL }}
+
 #  sonarcloud:
 #    needs: build
 #    uses: ZayraGS1403/central-pipelines/.github/workflows/sonarcloud-analysis.yml@v0.1.1
 #    with:
-#      java-version: '21'
+#      node-version: '20'
 #      branch-name: ${{ github.ref_name }}
 #    secrets:
 #      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
