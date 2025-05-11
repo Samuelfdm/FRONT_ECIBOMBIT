@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       build_status: ${{ job.status }}
+      acr_login_token: ${{ steps.acr_login.outputs.acr_access_token }}
     steps:
       - uses: actions/checkout@v4
 
@@ -36,8 +37,18 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Login to ACR and get token
+        id: acr_login
+        uses: azure/cli@v1
+        with:
+          az_cli_version: "2.72.0"
+          inlineScript: |
+            ACCESS_TOKEN=$(az acr login --name ${{ secrets.ACR_NAME }} --expose-token --query accessToken -o tsv)
+            echo "::set-output name=acr_access_token::$ACCESS_TOKEN"
+
       - name: Build and push Docker image (Nginx)
         run: |
+          docker login ${{ secrets.ACR_NAME }}.azurecr.io -u 00000000-0000-0000-0000-000000000000 -p ${{ steps.acr_login.outputs.acr_access_token }}
           docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/front-client:latest .
           docker push ${{ secrets.ACR_NAME }}.azurecr.io/front-client:latest
 
