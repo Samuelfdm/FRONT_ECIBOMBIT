@@ -1,10 +1,10 @@
 name: Deploy - Frontend EciBombit
 
 on:
-  push:
-    branches: [ "main", "develop" ]
-  pull_request:
-    branches: [ "main", "develop" ]
+  workflow_run:
+    workflows: [ "Build and Push - Frontend EciBombit" ]
+    types:
+      - completed
 
 permissions:
   id-token: write
@@ -13,7 +13,7 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ needs.build.result == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -24,13 +24,6 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Login to ACR with token from build job
-        uses: azure/cli@v1
-        with:
-          az_cli_version: "2.72.0"
-          inlineScript: |
-            docker login ${{ secrets.ACR_NAME }}.azurecr.io -u 00000000-0000-0000-0000-000000000000 -p ${{ needs.build.outputs.acr_login_token }}
-
       - name: Deploy to Azure Container App
         uses: azure/cli@v1
         with:
@@ -39,5 +32,5 @@ jobs:
             az containerapp update \
               --name front-client \
               --resource-group BOMBIT-RG \
-              --image bombitregistry.azurecr.io/front-client:latest \
+              --image ${{ secrets.ACR_NAME }}.azurecr.io/front-client:latest \
               --set-env-vars FRONTEND_URL=${{ secrets.FRONTEND_URL }} BACKEND_URL=${{ secrets.BACKEND_URL }} WEBSOCKET_URL=${{ secrets.WEBSOCKET_URL }}
