@@ -34,6 +34,9 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Set up Docker
+        uses: docker/setup-docker@v3
+
       - name: Login to ACR and get token
         id: acr_login
         uses: azure/cli@v1
@@ -63,6 +66,9 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      - name: Set up Docker
+        uses: docker/setup-docker@v3
+
       - name: Login to ACR
         uses: azure/cli@v1
         with:
@@ -70,9 +76,9 @@ jobs:
           inlineScript: |
             az acr login --name ${{ secrets.ACR_NAME }} --expose-token
             ACCESS_TOKEN=$(az acr login --name ${{ secrets.ACR_NAME }} --expose-token --query accessToken -o tsv)
-            echo "ACR_ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV # Export the token
-            echo "ACR_LOGIN_SERVER=${{ secrets.ACR_NAME }}.azurecr.io" >> $GITHUB_ENV # Export login server
-            docker login $ACR_LOGIN_SERVER -u 00000000-0000-0000-0000-000000000000 -p $ACR_ACCESS_TOKEN #docker login
+            echo "ACR_ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
+            echo "ACR_LOGIN_SERVER=${{ secrets.ACR_NAME }}.azurecr.io" >> $GITHUB_ENV
+            docker login $ACR_LOGIN_SERVER -u 00000000-0000-0000-0000-000000000000 -p $ACR_ACCESS_TOKEN
 
       - name: Deploy to Azure Container App
         uses: azure/cli@v1
