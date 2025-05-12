@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API_BASE = 'http://localhost:8080';
-
+//http://localhost:5173/statistics/681f25cc89f87a5faee9adcd
 export const loginUser = async (user) => {
     const response = await axios.post(`${API_BASE}/users/login`, user);
     return response.data;

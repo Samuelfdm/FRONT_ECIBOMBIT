@@ -14,7 +14,7 @@ function App() {
                 <Route path="/options" element={<PrivateRoute><Options /></PrivateRoute>} />
                 <Route path="/lobby/:room" element={<PrivateRoute><Lobby /></PrivateRoute>} />
                 <Route path="/game/:room" element={<PrivateRoute><Game /></PrivateRoute>} />
-                <Route path="/statistics/:gameId" element={<PrivateRoute><Statistics /></PrivateRoute>} />
+                <Route path="/statistics/:gameId" element={<Statistics />} />
             </Routes>
         </Router>
     );

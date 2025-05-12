@@ -1,0 +1,11 @@
+.general-statistics{
+    display: flex;
+    flex-direction: column;
+    background-color: rgba(135, 78, 153, 0.23);
+    height: auto;
+    width: 75%;
+    height: 25%;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50px;
+}
