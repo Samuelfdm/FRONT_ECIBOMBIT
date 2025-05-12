@@ -20,6 +20,8 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.set_output.outputs.image_tag }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -53,11 +55,13 @@ jobs:
         run: |
           docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/front-client:${{ github.sha }} .
           docker push ${{ secrets.ACR_NAME }}.azurecr.io/front-client:${{ github.sha }}
-          echo "IMAGE_TAG=${{ github.sha }}" >> $GITHUB_ENV
+          echo "image_tag=${{ github.sha }}" >> $GITHUB_ENV
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    env:
+      image_tag: ${{ needs.build.outputs.image_tag }}
     steps:
       - name: Azure Login (OIDC)
         uses: azure/login@v1
@@ -74,8 +78,22 @@ jobs:
             az containerapp update \
               --name ${{ env.CONTAINER_APP_NAME }} \
               --resource-group ${{ env.RESOURCE_GROUP }} \
-              --image ${{ env.ACR_NAME }}.azurecr.io/front-client:${{ env.IMAGE_TAG }} \
+              --image ${{ env.ACR_NAME }}.azurecr.io/front-client:${{ env.image_tag }} \
+              --target-port 80 \
+              --ingress external \
+              --transport http \
               --set-env-vars \
                 FRONTEND_URL=${{ secrets.FRONTEND_URL }} \
                 BACKEND_URL=${{ secrets.BACKEND_URL }} \
                 WEBSOCKET_URL=${{ secrets.WEBSOCKET_URL }}
+
+#  sonarcloud:
+#    needs: deploy
+#    uses: ZayraGS1403/central-pipelines/.github/workflows/sonarcloud-analysis.yml@v0.1.1
+#    with:
+#      node-version: '20'
+#      branch-name: ${{ github.ref_name }}
+#    secrets:
+#      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#      SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
+#      SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}
