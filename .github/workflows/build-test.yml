@@ -79,9 +79,6 @@ jobs:
               --name ${{ env.CONTAINER_APP_NAME }} \
               --resource-group ${{ env.RESOURCE_GROUP }} \
               --image ${{ env.ACR_NAME }}.azurecr.io/front-client:${{ env.image_tag }} \
-              --target-port 80 \
-              --ingress external \
-              --transport http \
               --set-env-vars \
                 FRONTEND_URL=${{ secrets.FRONTEND_URL }} \
                 BACKEND_URL=${{ secrets.BACKEND_URL }} \
