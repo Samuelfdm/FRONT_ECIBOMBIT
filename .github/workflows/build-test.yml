@@ -1,4 +1,4 @@
-name: Build and Push - Frontend EciBombit
+name: Build and Deploy - Frontend EciBombit
 
 on:
   push:
@@ -15,38 +15,35 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - run: npm install
+      - name: Install dependencies
+        run: npm install
 
-      - name: Build for production (Nginx)
+      - name: Build frontend
         run: npm run build
 
-      - name: Login to Azure
+      - name: Azure Login (OIDC)
         uses: azure/login@v1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Login to ACR and get token
-        id: acr_login
-        uses: azure/cli@v1
-        with:
-          azcliversion: "2.72.0"
-          inlineScript: |
-            ACCESS_TOKEN=$(az acr login --name ${{ secrets.ACR_NAME }} --expose-token --query accessToken -o tsv)
-            echo "ACR_ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
-            echo "ACR_LOGIN_SERVER=${{ secrets.ACR_NAME }}.azurecr.io" >> $GITHUB_ENV
-
-      - name: Build and push Docker image (Nginx)
+      - name: Login to Azure Container Registry and push image
         run: |
-          docker login $ACR_LOGIN_SERVER -u 00000000-0000-0000-0000-000000000000 -p $ACR_ACCESS_TOKEN
+          ACCESS_TOKEN=$(az acr login --name ${{ secrets.ACR_NAME }} --expose-token --query accessToken -o tsv)
+          ACR_LOGIN_SERVER="${{ secrets.ACR_NAME }}.azurecr.io"
+          echo "ACR_ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
+          echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER" >> $GITHUB_ENV
+
+          docker login $ACR_LOGIN_SERVER -u 00000000-0000-0000-0000-000000000000 -p $ACCESS_TOKEN
           docker build -t $ACR_LOGIN_SERVER/front-client:latest .
           docker push $ACR_LOGIN_SERVER/front-client:latest
 
@@ -54,25 +51,15 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Login to Azure
+      - name: Azure Login (OIDC)
         uses: azure/login@v1
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Login to ACR
-        uses: azure/cli@v1
-        with:
-          azcliversion: "2.72.0"
-          inlineScript: |
-            az acr login --name ${{ secrets.ACR_NAME }} --expose-token
-            ACCESS_TOKEN=$(az acr login --name ${{ secrets.ACR_NAME }} --expose-token --query accessToken -o tsv)
-            echo "ACR_ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
-            echo "ACR_LOGIN_SERVER=${{ secrets.ACR_NAME }}.azurecr.io" >> $GITHUB_ENV
-            docker login $ACR_LOGIN_SERVER -u 00000000-0000-0000-0000-000000000000 -p $ACR_ACCESS_TOKEN
 
       - name: Deploy to Azure Container App
         uses: azure/cli@v1
@@ -82,7 +69,7 @@ jobs:
             az containerapp update \
               --name front-client \
               --resource-group BOMBIT-RG \
-              --image $ACR_LOGIN_SERVER/front-client:latest \
+              --image ${{ secrets.ACR_NAME }}.azurecr.io/front-client:latest \
               --set-env-vars FRONTEND_URL=${{ secrets.FRONTEND_URL }} BACKEND_URL=${{ secrets.BACKEND_URL }} WEBSOCKET_URL=${{ secrets.WEBSOCKET_URL }}
 
 #  sonarcloud:
