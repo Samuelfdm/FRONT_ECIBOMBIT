@@ -11,6 +11,12 @@ permissions:
   actions: write
   id-token: write
 
+env:
+  ACR_NAME: ${{ secrets.ACR_NAME }}
+  RESOURCE_GROUP: BOMBIT-RG
+  CONTAINER_APP_NAME: front-client
+  CONTAINER_APP_ENV: bombit-env
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -36,24 +42,23 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Login to Azure Container Registry and push image
-        run: |
-          ACCESS_TOKEN=$(az acr login --name ${{ secrets.ACR_NAME }} --expose-token --query accessToken -o tsv)
-          ACR_LOGIN_SERVER="${{ secrets.ACR_NAME }}.azurecr.io"
-          echo "ACR_ACCESS_TOKEN=$ACCESS_TOKEN" >> $GITHUB_ENV
-          echo "ACR_LOGIN_SERVER=$ACR_LOGIN_SERVER" >> $GITHUB_ENV
+      - name: Build and push Docker image
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.ACR_NAME }}.azurecr.io
+          username: ${{ secrets.AZURE_CLIENT_ID }}
+          password: ${{ secrets.AZURE_CLIENT_SECRET }}
 
-          docker login $ACR_LOGIN_SERVER -u 00000000-0000-0000-0000-000000000000 -p $ACCESS_TOKEN
-          docker build -t $ACR_LOGIN_SERVER/front-client:latest .
-          docker push $ACR_LOGIN_SERVER/front-client:latest
+      - name: Build and push
+        run: |
+          docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/front-client:${{ github.sha }} .
+          docker push ${{ secrets.ACR_NAME }}.azurecr.io/front-client:${{ github.sha }}
+          echo "IMAGE_TAG=${{ github.sha }}" >> $GITHUB_ENV
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Azure Login (OIDC)
         uses: azure/login@v1
         with:
@@ -62,12 +67,15 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Deploy to Azure Container App
-        uses: azure/cli@v1
+        uses: azure/CLI@v1
         with:
           azcliversion: "2.72.0"
           inlineScript: |
             az containerapp update \
-              --name front-client \
-              --resource-group BOMBIT-RG \
-              --image ${{ secrets.ACR_NAME }}.azurecr.io/front-client:latest \
-              --set-env-vars FRONTEND_URL=${{ secrets.FRONTEND_URL }} BACKEND_URL=${{ secrets.BACKEND_URL }} WEBSOCKET_URL=${{ secrets.WEBSOCKET_URL }}
+              --name ${{ env.CONTAINER_APP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --image ${{ env.ACR_NAME }}.azurecr.io/front-client:${{ env.IMAGE_TAG }} \
+              --set-env-vars \
+                FRONTEND_URL=${{ secrets.FRONTEND_URL }} \
+                BACKEND_URL=${{ secrets.BACKEND_URL }} \
+                WEBSOCKET_URL=${{ secrets.WEBSOCKET_URL }}
