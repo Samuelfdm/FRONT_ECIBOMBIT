@@ -36,7 +36,7 @@ jobs:
 
       - name: Build and push Docker image (Nginx)
         run: |
-          az acr login --name ${{ secrets.ACR_NAME }}
+          az acr login --name ${{ secrets.ACR_NAME }} --expose-token
           docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/front-client:latest .
           docker push ${{ secrets.ACR_NAME }}.azurecr.io/front-client:latest
 
@@ -58,7 +58,7 @@ jobs:
         with:
           azcliversion: "2.72.0"
           inlineScript: |
-            az acr login --name ${{ secrets.ACR_NAME }}
+            az acr login --name ${{ secrets.ACR_NAME }} --expose-token
 
       - name: Deploy to Azure Container App
         uses: azure/cli@v1
