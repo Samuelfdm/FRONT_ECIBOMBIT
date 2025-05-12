@@ -37,6 +37,9 @@ jobs:
       - name: Build frontend
         run: npm run build
 
+      - name: Verificar contenido de build
+        run: ls -l dist
+
       - name: Azure Login (OIDC)
         uses: azure/login@v1
         with:

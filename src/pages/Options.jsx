@@ -10,7 +10,7 @@ import "../style/Options.css";
 //const backendApi = process.env.BACKEND_URL || 'http://localhost:8080';
 //const websocketApi = process.env.WEBSOCKET_URL || 'ws://localhost:3000';
 const backendApi = 'https://backend.proudwave-8afe962a.eastus.azurecontainerapps.io';
-const websocketApi = 'wss://ws-server.internal.proudwave-8afe962a.eastus.azurecontainerapps.io';
+const websocketApi = 'wss://ws-server.proudwave-8afe962a.eastus.azurecontainerapps.io';
 
 const Options = () => {
     const { instance, accounts } = useMsal();
