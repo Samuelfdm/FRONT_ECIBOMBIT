@@ -101,12 +101,16 @@ const Options = () => {
             const registerUserInBackend = async (name, email, accessToken) => {
                 try {
                     console.log(accessToken);
-                    await axios.post("http://localhost:8080/users/login", {
+                    const jwtResponse = await axios.post("http://localhost:8080/users/login", {
                         oid: accounts[0].homeAccountId,
                         username: name,
                         email: email
                     });
                     console.log("se mando el jwt")
+                    // ✅ Guardar el token que crea tu backend
+                    const jwtToken = jwtResponse.data.token;
+                    sessionStorage.setItem("jwtToken", jwtToken);
+                    setJwtToken(jwtToken);
                     sessionStorage.setItem('userRegistered', 'true');
                 } catch (e) {
                     console.error("Error registrando usuario en backend:", e);
@@ -128,7 +132,7 @@ const Options = () => {
                 const name = graphResponse.data.displayName;
                 const email = graphResponse.data.mail || graphResponse.data.userPrincipalName;
 
-                setUserName(name);w
+                setUserName(name);
                 localStorage.setItem('userName', name);
 
 
