@@ -11,6 +11,10 @@ function GeneralStatistics({game}) {
                   value={game.totalBombsPlaced}/>
                 <Info img={"/assets/bombas.webp"} 
                     value={game.totalBombsPlaced}/>
+                <Info img={"/assets/bombas.webp"} 
+                    value={game.totalBombsPlaced}/>
+                <Info img={"/assets/bombas.webp"} 
+                    value={game.totalBombsPlaced}/>
             </div>
             
 

@@ -8,6 +8,8 @@ const Statistics = () => {
     const { gameId } = useParams();
     const [game, setGame] = useState(null);
     const [winners, setWinners] = useState(null);
+    const [room, setRoom] = useState(null);
+    
 
     useEffect(() => {
         if (!gameId) {
@@ -27,6 +29,8 @@ const Statistics = () => {
                 const winnerNames = winnerPlayers.map(winner => winner.character);
                 const sortedWinners = extractAndConcatenate(winnerNames);
                 setWinners(sortedWinners);
+                setRoom(data.roomId);
+
             })
             .catch(error => {
                 console.error("Error al obtener los datos:", error);
@@ -40,13 +44,13 @@ const Statistics = () => {
     }
 
     if (!game) return <div>Loading...</div>;
+    console.log(game)
 
     console.log("Sorted Winners: ", winners);
 
     return (
         <div className="background-statistics">
-            <h1 className="title-statistics">📊 Estadísticas 📈</h1>
-            <h2>Resumen General</h2>
+            <h1 className="title-statistics">📊 Estadísticas de la partida: {room}📈</h1>
             <GeneralStatistics game={game}/>
             <div className="players-statistics">
                 <div className="statistics">
