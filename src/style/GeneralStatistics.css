@@ -3,7 +3,7 @@
     flex-direction: column;
     background-color: rgba(135, 78, 153, 0.23);
     width: 75%;
-    height: 35%;
+    height: 30%;
     align-items: center;
     justify-content: flex-start;
     border-radius: 6vh;
@@ -13,10 +13,10 @@
 
 .title-s{
     font-family: 'titulos',sans-serif;
-    font-size: 2.5vw;
+    font-size: 2.1vw;
     display: flex;
     width: 100%;
-    height: 25%;
+    height: 20%;
     align-items: center;
     margin-top: 0%;
     justify-content: center;

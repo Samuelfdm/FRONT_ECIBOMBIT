@@ -12,7 +12,9 @@
   "dependencies": {
     "@azure/msal-browser": "^4.9.1",
     "@azure/msal-react": "^3.0.5",
-    "@nivo/pie": "^0.94.0",
+    "@nivo/bar": "^0.96.0",
+    "@nivo/core": "^0.96.0",
+    "@nivo/pie": "^0.96.0",
     "axios": "^1.8.4",
     "normalize.css": "^8.0.1",
     "phaser": "^3.88.2",

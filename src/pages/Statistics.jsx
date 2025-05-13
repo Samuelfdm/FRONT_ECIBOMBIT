@@ -63,48 +63,49 @@ const Statistics = () => {
                     <div className="title-s">
                         <h2>Panel de Control Galáctico</h2>
                     </div>
-                    <div className="part">
-                        <div className="statistics">
-                            <h2>Movimientos por jugador</h2>
-                            <Pie data={game.statistics.totalMoves} />
+                    <div className="graficosSS">
+                        <div className="part">
+                            <div className="statistics">
+                                <h2>Desplazamientos cósmicos</h2>
+                                <Pie data={game.statistics.totalMoves} />
+                            </div>
+                            <div className="statistics">
+                                <h2>Bajas en el Campo Estelar</h2>
+                                <Pie data={game.statistics.kills} />
+                            </div>
                         </div>
-                        <div className="statistics">
-                            <h2>Bajas en el Campo Estelar</h2>
-                            <Pie data={game.statistics.kills} />
+
+                        <div className="part">
+                            <div className="statistics">
+                                <h2>Astronaves pulverizadas</h2>
+                                <Pie data={game.statistics.totalBlocksDestroyed} />
+                            </div>
+                            <div className="statistics">
+                                <h2>Resistencia cósmica</h2>
+                                <Pie data={game.statistics.timeAlive} />
+                            </div>
                         </div>
                     </div>
-
-                    <div className="part">
-                        <div className="statistics">
-                            <h2>Efectividad de las bombas</h2>
-                            <Pie data={game.statistics.totalBlocksDestroyed} />
-                        </div>
-                        <div className="statistics">
-                            <h2>Muertes</h2>
-                            <Pie data={game.statistics.kills} />
-                        </div>
-                    </div>
-
                 </div>
                 <div className="players-info-container">
                     <div className="title-s">
                         <h2>Burbis</h2>
                     </div>
-                    {game.players.map((player) => {
-                        const character = charactersList.find(
-                        (c) => c.id === player.character
-                        );
-                        return (
-                        <Info
-                            key={player.id}
-                            img={character?.emoji}
-                            value={player.username}
-                        />
-                        );
-                    })}
-                </div>
-                
-                
+                    <div className="players-info-containerRR">
+                        {game.players.map((player) => {
+                            const character = charactersList.find(
+                            (c) => c.id === player.character
+                            );
+                            return (
+                            <Info
+                                key={player.id}
+                                img={character?.emoji}
+                                value={player.username}
+                            />
+                            );
+                        })}
+                    </div>  
+                </div>   
             </div>
         </div>
     );
