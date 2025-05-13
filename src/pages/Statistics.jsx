@@ -50,7 +50,9 @@ const Statistics = () => {
 
     return (
         <div className="background-statistics">
+            
             <h1 className="title-statistics">📊 Estadísticas de la partida: {room}📈</h1>
+            
             <GeneralStatistics game={game}/>
             <div className="players-statistics">
                 <div className="statistics">

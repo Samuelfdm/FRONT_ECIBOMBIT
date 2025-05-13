@@ -16,7 +16,7 @@
 }
 
 .players-statistics{
-    display: flex;
+  display: flex;
   flex-direction: row;
   background-color: rgba(135, 78, 153, 0.23);
   height: auto;
@@ -28,34 +28,15 @@
 
 }
 
+.title-statistics{
+  color:rgb(177, 232, 235);
+  font-size: 5vw;
+}
+
 .statistics{
-    display: flex;
+  display: flex;
   flex-direction: column;
- width: auto;
- height: auto;
- background-color: aqua;
-  
-
+  width: auto;
+  height: auto;
 }
 
-.info{
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: 25%;
-    justify-content: center;
-    align-items: center;
-}
-
-img{
-    height: 50%;
-    width: auto;
-    margin-bottom: 0%;
-
-}
-
-.details-f {
-    font-family: 'titulos',sans-serif;
-    font-size:5vh;
-
-}

@@ -8,15 +8,26 @@
     justify-content: flex-start;
     border-radius: 50px;
     font-family: 'titulos',sans-serif;
-    font-size: 1.5vw;
+    font-size: 3.8vw;
 }
 
+.title-s{
+    font-family: 'titulos',sans-serif;
+    font-size: 2.5vw;
+    display: flex;
+    width: 100%;
+    height: 25%;
+    align-items: center;
+    margin-top: 0%;
+    justify-content: center;
+    color: aliceblue;
+}
 .es{
     display: flex;
     flex-direction: row;
-    width: 75%;
-    height: 80%;
+    width: 100%;
+    height: 75%;
     align-items: center;
     margin-top: 0%;
-
+    color: rgb(246, 224, 243);
 }
