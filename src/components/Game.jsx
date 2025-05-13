@@ -1,13 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate } from 'react-router-dom';
 import Phaser from "phaser";
-
-const charactersList = [
-  { id: "bomber1", emoji: "/assets/character1.webp", name: "Bomber Verde" },
-  { id: "bomber2", emoji: "/assets/character2.webp", name: "Bomber Naranja" },
-  { id: "bomber3", emoji: "/assets/character3.webp", name: "Bomber Azul" },
-  { id: "bomber4", emoji: "/assets/character4.webp", name: "Bomber Morado" },
-];
+import { charactersList } from '../constants/character';
 
 const PhaserGame = ({ board, players, socket, playerId, gameId,  isGameStarted  }) => {
   const gameRef = useRef(null);
@@ -83,7 +77,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId,  isGameStarted  
         default: "arcade",
         arcade: {
           gravity: { y: 0 },
-          debug: true,
+          debug: false,
         },
       },
       audio: {//
@@ -341,6 +335,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId,  isGameStarted  
         // Mostrar explosión
         const explosion = scene.add.rectangle(px, py, tileSize, tileSize, 0xff0000, 0.5);
         scene.time.delayedCall(300, () => explosion.destroy());
+
       });
     };
 
@@ -372,19 +367,6 @@ const PhaserGame = ({ board, players, socket, playerId, gameId,  isGameStarted  
         } else {
           showGameMessage(scene, `💀 Fuiste eliminado por ${killerUsername}`);
         }
-      }
-    });
-
-    socket.on('gameOver', ({ winners, winnerUsernames, reason }) => {
-      const scene = gameRef.current.scene.keys.default;
-    
-      if (winners && winners.includes(playerId)) {
-        showGameMessage(scene, `🏆 ¡Ganaste! ${reason}`);
-      } else if (winnerUsernames && winnerUsernames.length > 0) {
-        const names = winnerUsernames.join(', ');
-        showGameMessage(scene, `🏁 Ganador${winnerUsernames.length > 1 ? 'es' : ''}: ${names}. ${reason}`);
-      } else {
-        showGameMessage(scene, `📢 ${reason}`);
       }
     });
     
