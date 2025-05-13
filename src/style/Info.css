@@ -12,6 +12,13 @@
   .card-image {
     width: 70%;
     height: 70%;
+    justify-content: center;
+    align-items: center;
+  }
+
+  img .card-image{
+    height: 100%;
+    width: 100%;
   }
   
   .card-text {
