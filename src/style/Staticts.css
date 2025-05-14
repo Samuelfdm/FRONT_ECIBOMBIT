@@ -8,7 +8,7 @@
   flex-direction: column;
   align-items: center;
   color: white;
-  background-image: url("/assets/fondoEs.jpg");
+  background-image: url("/assets/fondoStatistics.jpg");
   overflow-y: auto;
   gap: 0.7vw;
   padding: 0; /* Remueve padding que empuja el contenido */

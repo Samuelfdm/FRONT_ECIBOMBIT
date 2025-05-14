@@ -3,7 +3,6 @@ import Info from "../components/Info";
 
 function GeneralStatistics({game}) {
     return (
-
         <div className="general-statistics">
             <div className="title-s">
                 <h2>Resumen General</h2>
@@ -18,8 +17,6 @@ function GeneralStatistics({game}) {
                 <Info img={"/assets/MUERTE.png"} 
                     value={game.kills}/>
             </div>
-            
-
         </div>
     );
 }

@@ -7,8 +7,8 @@ import axios from "axios";
 import { charactersList } from '../constants/character';
 import "../style/Global.css";
 import "../style/Lobby.css";
-const websocketApi = 'ws://localhost:3000';
-//const websocketApi = 'wss://ws-server.proudwave-8afe962a.eastus.azurecontainerapps.io';
+//const websocketApi = 'ws://localhost:3000';
+const websocketApi = 'wss://ws-server.proudwave-8afe962a.eastus.azurecontainerapps.io';
 
 // Componente para el panel de configuración
 const ConfigPanel = ({ config, isOwner, onConfigChange }) => {
