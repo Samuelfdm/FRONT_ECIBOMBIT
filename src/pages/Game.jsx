@@ -6,8 +6,8 @@ import { charactersList } from '../constants/character';
 import { io } from "socket.io-client";
 import "../style/Global.css";
 import "../style/Game.css";
-//const websocketApi = 'ws://localhost:3000';
-const websocketApi = 'wss://ws-server.proudwave-8afe962a.eastus.azurecontainerapps.io';
+const websocketApi = 'ws://localhost:3000';
+//const websocketApi = 'wss://ws-server.proudwave-8afe962a.eastus.azurecontainerapps.io';
 
 const Game = () => {
     const navigate = useNavigate();
@@ -17,7 +17,7 @@ const Game = () => {
     const [userName, setUserName] = useState(() => {
         return sessionStorage.getItem('userName') || '';
     });
-    const [isGameStarted, setIsGameStarted] = useState(false);
+    const [isGameStarted, setIsGameStarted] = useState();
     const [startCountdown, setStartCountdown] = useState(null);
     const [playersPanel, setPlayersPanel] = useState([]);
     const [playersGame, setPlayersGame] = useState([]); 
@@ -95,11 +95,11 @@ const Game = () => {
                 setStartCountdown(time);
                 if (time === 0) {
                     clearInterval(countdownInterval);
-                    setIsGameStarted(true);
                     setStartCountdown(null);
+                    setIsGameStarted(true); 
                 }
             }, 1000);
-        });
+        });  
 
         newSocket.on("gameTimerTick", ({ timeLeft }) => {
             setGameTimeLeft(timeLeft);
@@ -114,7 +114,7 @@ const Game = () => {
         });
 
         // Cuando termina el juego
-        newSocket.on('gameOver', ({winnerUsernames, reason }) => {
+        newSocket.on('gameOver', ({winnerUsernames, reason  }) => {
             console.log(winnerUsernames);
 
             let message;
@@ -128,7 +128,7 @@ const Game = () => {
             setGameOverMessage(message);
             setTimeout(() => {
                 navigate(`/statistics/${gameId}`);
-            }, 7000);
+            }, 3000);
         });
 
 
@@ -144,10 +144,17 @@ const Game = () => {
                 newSocket.off("gameTimerTick");
                 newSocket.off("playerDied");
                 newSocket.off("connect_error");
+                newSocket.off("gameOver");
                 newSocket.disconnect();
             }
         };
     }, [gameId, userName]);
+
+    useEffect(() => {
+        if (isGameStarted) {
+          console.log("🔥 El juego ha comenzado después del countdown.");
+        }
+      }, [isGameStarted]);
 
     useEffect(() => {
         const handlePopState = () => {
@@ -217,7 +224,7 @@ const Game = () => {
                         />
                     );
                 })}
-
+                
                 {gameTimeLeft !== null && (
                     <div className="timer-box">
                         <span>{formatTime(gameTimeLeft)}</span>
@@ -227,13 +234,14 @@ const Game = () => {
             </div>
             <div className="game-board">
                 <PhaserGame
+                    key={isGameStarted ? "game-started" : "game-waiting"} // 🔑 clave única según el estado
                     board={board}
                     players={playersGame}
                     socket={socket}
                     playerId={(playersGame.find(p => p.username === userName))?.id}
                     gameId={gameId}
+                    enable={isGameStarted}
                 />
-
             </div>
         </div>
     );

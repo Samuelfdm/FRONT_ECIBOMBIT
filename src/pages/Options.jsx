@@ -7,10 +7,10 @@ import axios from "axios";
 import Alert from "../components/Alert";
 import "../style/Global.css";
 import "../style/Options.css";
-//const backendApi = 'http://localhost:8080';
-//const websocketApi = 'ws://localhost:3000';
-const backendApi = 'https://backend.proudwave-8afe962a.eastus.azurecontainerapps.io';
-const websocketApi = 'wss://ws-server.proudwave-8afe962a.eastus.azurecontainerapps.io';
+const backendApi = 'http://localhost:8080';
+const websocketApi = 'ws://localhost:3000';
+//const backendApi = 'https://backend.proudwave-8afe962a.eastus.azurecontainerapps.io';
+//const websocketApi = 'wss://ws-server.proudwave-8afe962a.eastus.azurecontainerapps.io';
 
 const Options = () => {
     const { instance, accounts } = useMsal();
@@ -191,7 +191,7 @@ const Options = () => {
     return (
         <div className="background-options"> 
             <div className="header-section">
-                <h1 className="section-title">Bienvenido, {userName || "Cargando..."}</h1>
+                <h1 className="section-titles">Bienvenido, {userName || "Cargando..."}</h1>
                 <button 
                     className="logout-button"
                     onClick={handleLogout}

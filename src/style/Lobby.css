@@ -209,6 +209,7 @@
     grid-template-columns: repeat(2, 1fr);
     gap: 15px;
     margin-top: 15px;
+    
 }
 
 .character-option {
@@ -221,6 +222,7 @@
     border: 2px solid transparent;
     transition: all 0.3s;
     position: relative;
+    color: aliceblue;
 }
 
 .character-option:hover:not(.taken) {

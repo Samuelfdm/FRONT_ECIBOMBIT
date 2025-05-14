@@ -5,8 +5,8 @@ import Pie from "../components/Pie";
 import { charactersList } from '../constants/character';
 import Info from "../components/Info";
 import GeneralStatistics from "../components/GeneralStatistics";
-//const backendApi = 'http://localhost:8080';
-const backendApi = 'https://backend.proudwave-8afe962a.eastus.azurecontainerapps.io';
+const backendApi = 'http://localhost:8080';
+//const backendApi = 'https://backend.proudwave-8afe962a.eastus.azurecontainerapps.io';
 
 const Statistics = () => {
     const { gameId } = useParams();

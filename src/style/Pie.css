@@ -1,0 +1,27 @@
+.pie-container {
+    height: 30vh;
+    width: 25vw;
+    margin-top: 5px;
+
+  }
+  
+  .pie-no-data {
+    height: 29vh;
+    width: 20vw;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    color: white;
+    font-family: monospace;
+    text-align: center;
+    padding: 10px;
+    border-radius: 8px;
+  }
+  
+  .pie-no-data img {
+    width: 70%;
+    margin-bottom: 10px;
+  }
+  

@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import Phaser from "phaser";
 import { charactersList } from '../constants/character';
 
-const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
+const PhaserGame = ({ board, players, socket, playerId, gameId, enabled  }) => {
   const gameRef = useRef(null);
-  const [isDead, setIsDead] = useState(false);
+  const isDeadRef = useRef(false);
+  const isGameOverRef = useRef(false);
   const navigate = useNavigate();
   let positionX = null;
   let positionY = null;
@@ -18,7 +19,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
     const keysPressed = { left: false, right: false, up: false, down: false };
 
     const handleKeyDown = (event) => {
-      if (isDead) return;
+      if (isDeadRef.current || isGameOverRef.current) return;
       switch (event.key) {
         case "ArrowLeft":
           keysPressed.left = true;
@@ -41,7 +42,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
     };
 
     const handleKeyUp = (event) => {
-      if (isDead) return;
+      if (isDeadRef.current || isGameOverRef.current) return;
       switch (event.key) {
         case "ArrowLeft":
           keysPressed.left = false;
@@ -108,8 +109,8 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
 
       if (victimId === playerId) {
         // Si soy yo quien murió
-        setIsDead(true);
         currentPlayer = null;
+        isDeadRef.current = true;
       }
     }
 
@@ -207,7 +208,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
     }
 
     function update() {
-      if (!currentPlayer) return;
+      if (!currentPlayer || isGameOverRef.current || isDeadRef.current) return;
 
       const speed = 150;
       currentPlayer.setVelocity(0);
@@ -270,8 +271,9 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
         { x: cellX, y: cellY - 1 },
         { x: cellX, y: cellY + 1 },
       ];
-
+      
       // Explosión después de 2 segundos
+      
       scene.time.delayedCall(2000, () => {
         socket.emit("bombExploded", {
           playerId,
@@ -279,6 +281,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
           gameId,
         });
         handleExplosion(explosionTiles,true);
+        
       });
     };
 
@@ -369,6 +372,16 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
       }
     });
     
+    socket.on('gameOver', ({winnerUsernames, reason }) => {
+        console.log(winnerUsernames);
+        isGameOverRef.current = true;
+        if (currentPlayer) {
+          currentPlayer.setVelocity(0, 0);
+          currentPlayer.body.enable = false; 
+          currentPlayer.body.moves = false;
+          currentPlayer.active = false; // 
+        }
+    });
 
     if (gameRef.current) {
       gameRef.current.destroy(true);

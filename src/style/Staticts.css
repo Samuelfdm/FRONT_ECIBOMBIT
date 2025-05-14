@@ -8,8 +8,9 @@
   flex-direction: column;
   align-items: center;
   color: white;
-  background-image: url("/assets/fondoStatistics.jpg");
+  background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(162, 145, 224, 0.5)),url("/assets/fondoStatistics.jpg");
   overflow-y: auto;
+  
   gap: 0.7vw;
   padding: 0; /* Remueve padding que empuja el contenido */
   margin: 0;
@@ -18,7 +19,7 @@
 .players-statistics{
   display: flex;
   flex-direction: row;
-  background-color: rgba(135, 78, 153, 0.23);
+  background-color: rgba(130, 77, 146, 0.377);
   width: 75%;
   height: 48%;
   align-items: center;

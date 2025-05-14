@@ -1,6 +1,6 @@
 import { PublicClientApplication } from "@azure/msal-browser";
-//const frontendApi = 'http://localhost:5173';
-const frontendApi = 'https://front-client.proudwave-8afe962a.eastus.azurecontainerapps.io';
+const frontendApi = 'http://localhost:5173';
+//const frontendApi = 'https://front-client.proudwave-8afe962a.eastus.azurecontainerapps.io';
 
 const msalConfig = {
   auth: {
