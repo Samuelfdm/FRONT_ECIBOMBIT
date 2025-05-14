@@ -4,22 +4,23 @@ import "../style/Staticts.css";
 import Pie from "../components/Pie";
 import { charactersList } from '../constants/character';
 import Info from "../components/Info";
-
 import GeneralStatistics from "../components/GeneralStatistics";
+const backendApi = 'http://localhost:8080';
+//const backendApi = 'https://backend.proudwave-8afe962a.eastus.azurecontainerapps.io';
 
 const Statistics = () => {
     const { gameId } = useParams();
     const [game, setGame] = useState(null);
     const [winners, setWinners] = useState(null);
     const [room, setRoom] = useState(null);
-    
 
     useEffect(() => {
         if (!gameId) {
             console.log("No gameId found");
             return;
         }
-        fetch(`http://localhost:8080/games/${gameId}`)
+
+        fetch(`${backendApi}/games/${gameId}`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);

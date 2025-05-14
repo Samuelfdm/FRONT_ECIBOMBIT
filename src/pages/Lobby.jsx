@@ -7,8 +7,8 @@ import axios from "axios";
 import { charactersList } from '../constants/character';
 import "../style/Global.css";
 import "../style/Lobby.css";
-//const websocketApi = import.meta.env.WEBSOCKET_URL || 'ws://localhost:3000';
-const websocketApi = process.env.WEBSOCKET_URL || 'ws://localhost:3000';
+const websocketApi = 'ws://localhost:3000';
+//const websocketApi = 'wss://ws-server.proudwave-8afe962a.eastus.azurecontainerapps.io';
 
 // Componente para el panel de configuración
 const ConfigPanel = ({ config, isOwner, onConfigChange }) => {
@@ -170,6 +170,7 @@ const Lobby = () => {
     useEffect(() => {
         if (!username) return;
         if (socketRef.current) return;
+        console.log("VALOR OBTENIDO DE LA WEBSOCKETAPI: "+websocketApi);
         const newSocket = io(websocketApi, {
             reconnection: true,
             reconnectionAttempts: 5,

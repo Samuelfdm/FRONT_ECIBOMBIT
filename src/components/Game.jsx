@@ -3,13 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import Phaser from "phaser";
 import { charactersList } from '../constants/character';
 
-const PhaserGame = ({ board, players, socket, playerId, gameId,  isGameStarted  }) => {
+const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
   const gameRef = useRef(null);
   const [isDead, setIsDead] = useState(false);
   const navigate = useNavigate();
   let positionX = null;
   let positionY = null;
-  
 
   useEffect(() => {
     if (!board || !players || !playerId || !socket) {

@@ -6,9 +6,8 @@ import { charactersList } from '../constants/character';
 import { io } from "socket.io-client";
 import "../style/Global.css";
 import "../style/Game.css";
-//const websocketApi = import.meta.env.WEBSOCKET_URL || 'ws://localhost:3000';
-const websocketApi = process.env.WEBSOCKET_URL || 'ws://localhost:3000';
-
+const websocketApi = 'ws://localhost:3000';
+//const websocketApi = 'wss://ws-server.proudwave-8afe962a.eastus.azurecontainerapps.io';
 
 const Game = () => {
     const navigate = useNavigate();
@@ -58,7 +57,8 @@ const Game = () => {
         setGameId(location.state.gameId);
     }, [location, navigate]);
 
-    useEffect(() => { //antes io("ws://localhost:3000")
+    useEffect(() => {
+        console.log("VALOR OBTENIDO DE LA WEBSOCKETAPI: "+websocketApi);
         const newSocket = io(websocketApi, {
             reconnection: true,
             reconnectionAttempts: 5,
