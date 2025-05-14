@@ -21,7 +21,7 @@ const Pie = ({ data }) => {
         borderColor={{ from: "color", modifiers: [["darker", 0.2]] }}
         enableArcLinkLabels={false}
         arcLinkLabelsSkipAngle={10}
-        arcLinkLabelsTextColor="#333"
+        arcLinkLabelsTextColor=""
         arcLinkLabelsThickness={2}
         arcLinkLabelsColor={{ from: "color" }}
         arcLabelsSkipAngle={10}
