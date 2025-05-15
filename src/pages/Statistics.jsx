@@ -3,16 +3,19 @@ import { useParams } from "react-router-dom";
 import "../style/Staticts.css";
 import Pie from "../components/Pie";
 import { charactersList } from '../constants/character';
+import { charactersListWinners } from '../constants/characterWinners';
 import Info from "../components/Info";
 import GeneralStatistics from "../components/GeneralStatistics";
+
 const backendApi = 'http://localhost:8080';
-//const backendApi = 'https://backend.proudwave-8afe962a.eastus.azurecontainerapps.io';
+// const backendApi = 'https://backend.proudwave-8afe962a.eastus.azurecontainerapps.io';
 
 const Statistics = () => {
     const { gameId } = useParams();
     const [game, setGame] = useState(null);
     const [winners, setWinners] = useState(null);
     const [room, setRoom] = useState(null);
+    const [winnerEmoji, setWinnerEmoji] = useState(null); // ✅ new state
 
     useEffect(() => {
         if (!gameId) {
@@ -29,36 +32,32 @@ const Statistics = () => {
             })
             .then(data => {
                 setGame(data);
+
+                // ✅ process winners
                 const winnerPlayers = data.players.filter(p => p.winner === true);
                 const winnerNames = winnerPlayers.map(winner => winner.character);
-                const sortedWinners = extractAndConcatenate(winnerNames);
-                setWinners(sortedWinners);
+                const numbers = winnerNames.map(item => parseInt(item.match(/\d+/)[0], 10));
+                const sortedNumbers = numbers.sort((a, b) => a - b).join('');
+                setWinners(sortedNumbers);
                 setRoom(data.roomId);
 
+                // ✅ find and set winner emoji
+                const winner = charactersListWinners.find(c => c.id === String(sortedNumbers));
+                setWinnerEmoji(winner ? winner.emoji : null);
             })
             .catch(error => {
                 console.error("Error al obtener los datos:", error);
             });
     }, [gameId]);
 
-    function extractAndConcatenate(arr) {
-        const numbers = arr.map(item => parseInt(item.match(/\d+/)[0], 10));
-        const sortedNumbers = numbers.sort((a, b) => a - b).join('');
-        return sortedNumbers;
-    }
-
     if (!game) return <div>Loading...</div>;
-    console.log(game)
-
-    console.log("Sorted Winners: ", winners);
 
     return (
         <div className="background-statistics">
-            
             <h1 className="title-statistics">📊 Estadísticas de la partida: {room}📈</h1>
-            
-            <GeneralStatistics game={game}/>
-            
+
+            <GeneralStatistics game={game} winner={winnerEmoji} />
+
             <div className="players-statistics">
                 <div className="graficos">
                     <div className="title-s">
@@ -95,18 +94,18 @@ const Statistics = () => {
                     <div className="players-info-containerRR">
                         {game.players.map((player) => {
                             const character = charactersList.find(
-                            (c) => c.id === player.character
+                                (c) => c.id === player.character
                             );
                             return (
-                            <Info
-                                key={player.id}
-                                img={character?.emoji}
-                                value={player.username}
-                            />
+                                <Info
+                                    key={player.id}
+                                    img={character?.emoji}
+                                    value={player.username}
+                                />
                             );
                         })}
-                    </div>  
-                </div>   
+                    </div>
+                </div>
             </div>
         </div>
     );
