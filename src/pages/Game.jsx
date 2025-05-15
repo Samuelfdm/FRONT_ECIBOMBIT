@@ -7,7 +7,8 @@ import { io } from "socket.io-client";
 import "../style/Global.css";
 import "../style/Game.css";
 //const websocketApi = 'ws://localhost:3000';
-const websocketApi = 'wss://ws-server.proudwave-8afe962a.eastus.azurecontainerapps.io';
+//const websocketApi = 'wss://ws-server.proudwave-8afe962a.eastus.azurecontainerapps.io';
+const websocketApi = import.meta.env.VITE_WEBSOCKET_URL;
 
 const Game = () => {
     const navigate = useNavigate();
@@ -58,7 +59,7 @@ const Game = () => {
     }, [location, navigate]);
 
     useEffect(() => {
-        console.log("VALOR OBTENIDO DE LA WEBSOCKETAPI: "+websocketApi);
+        console.log("VALOR OBTENIDO DE LA WEBSOCKETAPI GAME: "+websocketApi);
         const newSocket = io(websocketApi, {
             reconnection: true,
             reconnectionAttempts: 5,

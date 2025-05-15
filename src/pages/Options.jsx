@@ -9,8 +9,10 @@ import "../style/Global.css";
 import "../style/Options.css";
 //const backendApi = 'http://localhost:8080';
 //const websocketApi = 'ws://localhost:3000';
-const backendApi = 'https://backend.proudwave-8afe962a.eastus.azurecontainerapps.io';
-const websocketApi = 'wss://ws-server.proudwave-8afe962a.eastus.azurecontainerapps.io';
+//const backendApi = 'https://backend.proudwave-8afe962a.eastus.azurecontainerapps.io';
+//const websocketApi = 'wss://ws-server.proudwave-8afe962a.eastus.azurecontainerapps.io';
+const backendApi = import.meta.env.VITE_BACKEND_URL;
+const websocketApi = import.meta.env.VITE_WEBSOCKET_URL;
 
 const Options = () => {
     const { instance, accounts } = useMsal();
@@ -52,6 +54,7 @@ const Options = () => {
     };
 
     useEffect(() => {
+        console.log("VALOR OBTENIDO DE LA WEBSOCKETAPI OPTIONS: "+websocketApi);
         const newSocket = io(websocketApi, {
             reconnectionAttempts: 3,
             reconnectionDelay: 1000,
@@ -99,6 +102,7 @@ const Options = () => {
 
             const registerUserInBackend = async (name, email) => {
                 try {
+                    console.log("VALOR OBTENIDO DE LA BACKENDAPI OPTIONS: "+backendApi);
                     await axios.post(`${backendApi}/users/login`, {
                         oid: accounts[0].homeAccountId,
                         username: name,
