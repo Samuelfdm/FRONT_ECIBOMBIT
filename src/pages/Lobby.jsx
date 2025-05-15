@@ -4,17 +4,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useMsal } from "@azure/msal-react";
 import { InteractionRequiredAuthError } from "@azure/msal-browser";
 import axios from "axios";
+import { charactersList } from '../constants/character';
 import "../style/Global.css";
 import "../style/Lobby.css";
-//const websocketApi = import.meta.env.WEBSOCKET_URL || 'ws://localhost:3000';
-const websocketApi = process.env.WEBSOCKET_URL || 'ws://localhost:3000';
-
-const charactersList = [
-    { id: "bomber1", emoji: "/assets/character1.webp", name: "Bomber Verde" },
-    { id: "bomber2", emoji: "/assets/character2.webp", name: "Bomber Naranja" },
-    { id: "bomber3", emoji: "/assets/character3.webp", name: "Bomber Azul" },
-    { id: "bomber4", emoji: "/assets/character4.webp", name: "Bomber Morado" },
-];
+//const websocketApi = 'ws://localhost:3000';
+const websocketApi = 'wss://ws-server.proudwave-8afe962a.eastus.azurecontainerapps.io';
 
 // Componente para el panel de configuración
 const ConfigPanel = ({ config, isOwner, onConfigChange }) => {
@@ -176,6 +170,7 @@ const Lobby = () => {
     useEffect(() => {
         if (!username) return;
         if (socketRef.current) return;
+        console.log("VALOR OBTENIDO DE LA WEBSOCKETAPI: "+websocketApi);
         const newSocket = io(websocketApi, {
             reconnection: true,
             reconnectionAttempts: 5,

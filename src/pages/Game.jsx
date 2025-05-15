@@ -2,18 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useParams, useNavigate } from "react-router-dom";
 import Character from "../components/Character";
 import PhaserGame from "../components/Game";
+import { charactersList } from '../constants/character';
 import { io } from "socket.io-client";
 import "../style/Global.css";
 import "../style/Game.css";
-//const websocketApi = import.meta.env.WEBSOCKET_URL || 'ws://localhost:3000';
-const websocketApi = process.env.WEBSOCKET_URL || 'ws://localhost:3000';
-
-const charactersList = [
-    { id: "bomber1", emoji: "/assets/character1.webp", name: "Bomber Verde" },
-    { id: "bomber2", emoji: "/assets/character2.webp", name: "Bomber Naranja" },
-    { id: "bomber3", emoji: "/assets/character3.webp", name: "Bomber Azul" },
-    { id: "bomber4", emoji: "/assets/character4.webp", name: "Bomber Morado" },
-];
+//const websocketApi = 'ws://localhost:3000';
+const websocketApi = 'wss://ws-server.proudwave-8afe962a.eastus.azurecontainerapps.io';
 
 const Game = () => {
     const navigate = useNavigate();
@@ -31,12 +25,24 @@ const Game = () => {
     const [gameId, setGameId] = useState(null);
     const [playerId, setPlayerId] = useState(null);
     const [socket, setSocket] = useState(null);
+    const [deathMessage, setDeathMessage] = useState(null);
+    const [showExitButton, setShowExitButton] = useState(false); // Solo para el jugador eliminado
+    const [gameOverMessage, setGameOverMessage] = useState(null); // Para todos al finalizar la partida
 
     const formatTime = (seconds) => {
         const minutes = String(Math.floor(seconds / 60)).padStart(2, "0");
         const secs = String(seconds % 60).padStart(2, "0");
         return `${minutes}:${secs}`;
     };
+
+    useEffect(() => {
+        if (deathMessage && !showExitButton) {
+          const timer = setTimeout(() => {
+            setDeathMessage(null);
+          }, 3000);
+          return () => clearTimeout(timer);
+        }
+      }, [deathMessage, showExitButton]);
 
     useEffect(() => {
         if (!location.state) {
@@ -51,7 +57,8 @@ const Game = () => {
         setGameId(location.state.gameId);
     }, [location, navigate]);
 
-    useEffect(() => { //antes io("ws://localhost:3000")
+    useEffect(() => {
+        console.log("VALOR OBTENIDO DE LA WEBSOCKETAPI: "+websocketApi);
         const newSocket = io(websocketApi, {
             reconnection: true,
             reconnectionAttempts: 5,
@@ -98,6 +105,32 @@ const Game = () => {
             setGameTimeLeft(timeLeft);
         });
 
+        // Cuando muere el jugador
+        newSocket.on('playerDied', ({ victimId, killerUsername, suicide }) => {
+            if (playerId === victimId) {
+            const msg = suicide ? "💀 Te has suicidado" : `💀 Fuiste eliminado por ${killerUsername}`;
+            setDeathMessage(msg);
+            }
+        });
+
+        // Cuando termina el juego
+        newSocket.on('gameOver', ({winnerUsernames, reason }) => {
+            console.log(winnerUsernames);
+
+            let message;
+            if (!winnerUsernames || winnerUsernames.length === 0) {
+                message = "🏁 Fin del juego";
+            } else if (winnerUsernames.length === 1) {
+                message = `🏆💣 ${winnerUsernames[0]}`;
+            } else {
+                message = `🏆💣 ${winnerUsernames.join(', ')}`;
+            }
+            setGameOverMessage(message);
+            setTimeout(() => {
+                navigate(`/statistics/${gameId}`);
+            }, 7000);
+        });
+
         setSocket(newSocket);
     
         return () => {
@@ -118,22 +151,19 @@ const Game = () => {
             const cell = board?.cells?.find(c => c.playerId === playerId);
             const x = cell?.x ?? 0;
             const y = cell?.y ?? 0;
+
             if (socket && gameId && playerId) {
-                socket.emit("leaveGame", { gameId, playerId, x, y });
+                socket.emit("leaveGame", { gameId, playerId, x, y }, () => {
+                    console.log("Jugador desconectado por botón atrás del navegador");
+                    navigate("/options"); // Redirigir manualmente
+                });
             }
         };
 
         window.addEventListener("popstate", handlePopState);
+
         return () => {
             window.removeEventListener("popstate", handlePopState);
-            if (socket) {
-                socket.emit("leaveGame", {
-                    gameId,
-                    playerId,
-                    x: 0,
-                    y: 0
-                });
-            }
         };
     }, [socket, gameId, playerId, board]);
 
@@ -148,6 +178,22 @@ const Game = () => {
                     <h1>{startCountdown}</h1>
                 </div>
             )}
+
+            {deathMessage && (
+                <div className="countdown-overlay">
+                    <h1>{deathMessage}</h1>
+                    {showExitButton && (
+                    <button onClick={() => navigate(`/options`)}>Salir</button>
+                    )}
+                </div>
+            )}
+
+            {gameOverMessage && (
+            <div className="gameOver">
+                <h1>{gameOverMessage}</h1>
+            </div>
+            )}
+
             <div className="playersPanel">
                 {playersPanel.map(player => {
                     const characterData = charactersList.find(
@@ -174,14 +220,12 @@ const Game = () => {
 
             </div>
             <div className="game-board">
-                <PhaserGame 
-                    key={isGameStarted ? 'game-started' : 'waiting'}
+                <PhaserGame
                     board={board}
                     players={playersGame}
                     socket={socket}
                     playerId={(playersGame.find(p => p.username === userName))?.id}
                     gameId={gameId}
-                    isGameStarted={isGameStarted}
                 />
 
             </div>

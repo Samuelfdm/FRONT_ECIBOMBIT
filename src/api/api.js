@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_BASE = 'http://localhost:8080';
+//const API_BASE = 'http://localhost:8080';
+//const API_BASE = 'https://backend.proudwave-8afe962a.eastus.azurecontainerapps.io';
 
 export const loginUser = async (user) => {
     const response = await axios.post(`${API_BASE}/users/login`, user);
