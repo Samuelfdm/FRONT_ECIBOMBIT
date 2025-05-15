@@ -86,7 +86,11 @@ jobs:
             az containerapp update \
               --name ${{ env.CONTAINER_APP_NAME }} \
               --resource-group ${{ env.RESOURCE_GROUP }} \
-              --image ${{ env.ACR_NAME }}.azurecr.io/front-client:${{ needs.build.outputs.image_tag }}
+              --image ${{ env.ACR_NAME }}.azurecr.io/front-client:${{ needs.build.outputs.image_tag }} \
+              --set-env-vars \
+                FRONTEND_URL=${{ secrets.FRONTEND_URL }} \
+                BACKEND_URL=${{ secrets.BACKEND_URL }} \
+                WEBSOCKET_URL=${{ secrets.WEBSOCKET_URL }}
 
 #  sonarcloud:
 #    needs: deploy
