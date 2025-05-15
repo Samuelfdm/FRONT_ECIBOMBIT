@@ -131,9 +131,6 @@ const Game = () => {
             }, 7000);
         });
 
-
-
-
         setSocket(newSocket);
     
         return () => {
@@ -154,22 +151,19 @@ const Game = () => {
             const cell = board?.cells?.find(c => c.playerId === playerId);
             const x = cell?.x ?? 0;
             const y = cell?.y ?? 0;
+
             if (socket && gameId && playerId) {
-                socket.emit("leaveGame", { gameId, playerId, x, y });
+                socket.emit("leaveGame", { gameId, playerId, x, y }, () => {
+                    console.log("Jugador desconectado por botón atrás del navegador");
+                    navigate("/options"); // Redirigir manualmente
+                });
             }
         };
 
         window.addEventListener("popstate", handlePopState);
+
         return () => {
             window.removeEventListener("popstate", handlePopState);
-            if (socket) {
-                socket.emit("leaveGame", {
-                    gameId,
-                    playerId,
-                    x: 0,
-                    y: 0
-                });
-            }
         };
     }, [socket, gameId, playerId, board]);
 

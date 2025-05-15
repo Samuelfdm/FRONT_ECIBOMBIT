@@ -8,14 +8,14 @@ function GeneralStatistics({game}) {
                 <h2>Resumen General</h2>
             </div>
             <div className="es">
-                <Info img={"/assets/bombas.webp"} 
+                <Info img={"/assets/bombas.webp"}
                   value={game.totalBombsPlaced}/>
-                <Info img={"/assets/naveEspacialFinal.png"} 
-                    value={game.totalBlocksDestroyed}/>
-                <Info img={"/assets/Move.png"} 
-                    value={game.totalMoves}/>
-                <Info img={"/assets/MUERTE.png"} 
-                    value={game.kills}/>
+                <Info img={"/assets/naveEspacialFinal.png"}
+                  value={game.totalBlocksDestroyed}/>
+                <Info img={"/assets/Move.png"}
+                  value={game.totalMoves}/>
+                <Info img={"/assets/MUERTE.png"}
+                  value={game.kills}/>
             </div>
         </div>
     );

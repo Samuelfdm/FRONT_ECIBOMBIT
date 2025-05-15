@@ -6,6 +6,7 @@ import { charactersList } from '../constants/character';
 const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
   const gameRef = useRef(null);
   const [isDead, setIsDead] = useState(false);
+  const hasActiveBomb = useRef(false);
   const navigate = useNavigate();
   let positionX = null;
   let positionY = null;
@@ -69,9 +70,9 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
       width: board.columns * (tileSize + tileMargin),
       height: board.rows * (tileSize + tileMargin),
       parent: "phaser-container",
-      pixelArt: false,//
+      pixelArt: false,
       transparent: true,
-      antialias: true,//
+      antialias: true,
       physics: {
         default: "arcade",
         arcade: {
@@ -79,9 +80,9 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
           debug: false,
         },
       },
-      audio: {//
-        noAudio: true,//
-      },//
+      audio: {
+        noAudio: true,
+      },
       scene: {
         preload,
         create,
@@ -166,7 +167,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
         const sprite = this.physics.add
             .sprite(x, y, player.character)
             .setDisplaySize(tileSize, tileSize)
-            .setBounce(0)//
+            .setBounce(0)
             .setCollideWorldBounds(true)
             .setDrag(0.95)
             .setMaxVelocity(100);
@@ -175,25 +176,24 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
 
         if (player.id === playerId) {
           currentPlayer = sprite;
-          positionX = currentPlayer.x;//
-          positionY = currentPlayer.y;//
+          positionX = currentPlayer.x;
+          positionY = currentPlayer.y;
         }
       });
 
       const otherPlayers = Object.values(playerSprites).filter((sprite) => sprite !== currentPlayer);
 
       this.physics.add.collider(currentPlayer, wallsGroup, () => {
-      });//
+      });
 
       this.physics.add.collider(currentPlayer, blocksGroup, () => {
-      });//
+      });
 
       this.physics.add.overlap(currentPlayer, otherPlayers, () => {
-      });//
+      });
 
       window.addEventListener("keydown", handleKeyDown);
       window.addEventListener("keyup", handleKeyUp);
-
 
       //Actualizacion de los movimientos de otros jugadores
       socket.on("playerMoved", ({ playerId, x, y, direction }) => {
@@ -256,13 +256,13 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
     }
 
     const placeBomb = () => {
-      if (!currentPlayer || !gameRef.current?.scene) return;
+      if (!currentPlayer || !gameRef.current?.scene || hasActiveBomb.current) return;
       const scene = gameRef.current.scene.keys.default;
       const cellX = Math.floor(currentPlayer.x / (tileSize + tileMargin));
       const cellY = Math.floor(currentPlayer.y / (tileSize + tileMargin));
       drawBomb(cellX, cellY); // Muestra la bomba localmente
       socket.emit("bombPlaced", { playerId, x: cellX, y: cellY, gameId });
-
+      hasActiveBomb.current = true;
       const explosionTiles = [
         { x: cellX, y: cellY },
         { x: cellX - 1, y: cellY },
@@ -271,14 +271,15 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
         { x: cellX, y: cellY + 1 },
       ];
 
-      // Explosión después de 2 segundos
-      scene.time.delayedCall(2000, () => {
+      // Explosión después de 3 segundos
+      scene.time.delayedCall(3000, () => {
         socket.emit("bombExploded", {
           playerId,
           explosionTiles,
           gameId,
         });
         handleExplosion(explosionTiles,true);
+        hasActiveBomb.current = false;
       });
     };
 
@@ -343,7 +344,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
       const px = x * (tileSize + tileMargin) + tileSize / 2;
       const py = y * (tileSize + tileMargin) + tileSize / 2;
       const bomb = scene.add.circle(px, py, tileSize / 2 - 4, 0x000000);
-      scene.time.delayedCall(2000, () => bomb.destroy()); // Se destruye cuando explota
+      scene.time.delayedCall(3000, () => bomb.destroy()); // Se destruye cuando explota
     };
 
     socket.on("bombPlaced", ({ x, y }) => {
@@ -368,7 +369,6 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
         }
       }
     });
-    
 
     if (gameRef.current) {
       gameRef.current.destroy(true);
@@ -388,9 +388,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
       }
     };
     resizeGame();
-
     window.addEventListener("resize", resizeGame);
-    
 
     return () => {
       window.removeEventListener("resize", resizeGame);
