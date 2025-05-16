@@ -76,13 +76,13 @@ const Statistics = () => {
 
     const handleLeave = async () => {
         try {
-            const userName = sessionStorage.getItem("userName");
-            if (!game || !userName) return navigate("/options");
+            const userName2 = sessionStorage.getItem("userName");
+            if (!game || !userName2) return navigate("/options");
 
-            const player = game.players.find(p => p.username === userName);
-            if (!player) return navigate("/options");
+            const player2 = game.players.find(p => p.username === userName2);
+            if (!player2) return navigate("/options");
 
-            const cell = game.board?.cells?.find(c => c.playerId === player.id);
+            const cell = game.board?.cells?.find(c => c.playerId === player2.id);
             const x = cell?.x ?? 0;
             const y = cell?.y ?? 0;
 
@@ -90,7 +90,7 @@ const Statistics = () => {
             const socket = await import("socket.io-client").then(mod => mod.io(websocketApi));
             socket.emit("leaveGame", {
                 gameId: game.id,
-                playerId: player.id,
+                playerId: player2.id,
                 x,
                 y
             }, () => {
