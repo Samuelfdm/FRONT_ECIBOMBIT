@@ -62,10 +62,6 @@ const Statistics = () => {
                 const numbers = winnerNames.map(item => parseInt(item.match(/\d+/)[0], 10));
                 const sortedNumbers = numbers.sort((a, b) => a - b).join('');
                 setWinners(sortedNumbers);
-
-                const userName = sessionStorage.getItem("userName");
-                const player = data.players.find(p => p.username === userName);
-
                 // Si no existe el jugador o se salió del juego, redirigir a /options
                 if (!player || player.leftGame) {
                     console.warn("El jugador no participó o abandonó la partida. Redirigiendo...");
