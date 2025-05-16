@@ -111,3 +111,6 @@ dist-ssr
 *.sln
 *.sw?
 .env
+.env.production
+*.env
+.env*

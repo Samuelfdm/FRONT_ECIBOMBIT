@@ -126,7 +126,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId, enabled  }) => {
           console.warn(`No image found for character ID: ${player.character}`);
         }
       });
-      this.load.image("wall", "/assets/moon.png");
+      this.load.image("wall", "/assets/luna.webp");
       this.load.image("block", "/assets/naveEspacial.png");
     }
 

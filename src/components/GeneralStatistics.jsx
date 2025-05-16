@@ -13,9 +13,7 @@ function GeneralStatistics({game, winner}) {
                   value={game.totalBombsPlaced}/>
                 <Info img={"/assets/naveEspacialFinal.png"} 
                     value={game.totalBlocksDestroyed}/>
-                <Winner img={winner} 
-                    />
-                
+                <Winner img={winner} />
                 <Info img={"/assets/Move.png"} 
                     value={game.totalMoves}/>
                 <Info img={"/assets/MUERTE.png"} 

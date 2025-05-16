@@ -1,5 +1,5 @@
 export const charactersListWinners = [
-    { id: "1", emoji: "/assets/ganadorVerde.png" },
+    { id: "1", emoji: "/assets/ganadorVerde.png", name: "Bomber Naranja" },
     { id: "2", emoji: "/assets/ganadorNaranja.png", name: "Bomber Naranja" },
     { id: "3", emoji: "/assets/ganadorAzul.png", name: "Bomber Azul" },
     { id: "4", emoji: "/assets/ganadorMorado.png", name: "Bomber Morado" },

@@ -6,18 +6,15 @@ import { charactersList } from '../constants/character';
 import { charactersListWinners } from '../constants/characterWinners';
 import Info from "../components/Info";
 import GeneralStatistics from "../components/GeneralStatistics";
-
-const backendApi = 'http://localhost:8080';
-const websocketApi = 'ws://localhost:3000';
-//const backendApi = 'https://backend.proudwave-8afe962a.eastus.azurecontainerapps.io';
-//const websocketApi = 'wss://ws-server.proudwave-8afe962a.eastus.azurecontainerapps.io';
+const backendApi = import.meta.env.VITE_BACKEND_URL;
+const websocketApi = import.meta.env.VITE_WEBSOCKET_URL;
 
 const Statistics = () => {
     const { gameId } = useParams();
     const [game, setGame] = useState(null);
     const [winners, setWinners] = useState(null);
     const [room, setRoom] = useState(null);
-    const [winnerEmoji, setWinnerEmoji] = useState(null); // ✅ new state
+    const [winnerEmoji, setWinnerEmoji] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
