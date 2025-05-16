@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import "../style/Staticts.css";
 import Pie from "../components/Pie";
 import { charactersList } from '../constants/character';
@@ -8,7 +8,9 @@ import Info from "../components/Info";
 import GeneralStatistics from "../components/GeneralStatistics";
 
 const backendApi = 'http://localhost:8080';
-// const backendApi = 'https://backend.proudwave-8afe962a.eastus.azurecontainerapps.io';
+const websocketApi = 'ws://localhost:3000';
+//const backendApi = 'https://backend.proudwave-8afe962a.eastus.azurecontainerapps.io';
+//const websocketApi = 'wss://ws-server.proudwave-8afe962a.eastus.azurecontainerapps.io';
 
 const Statistics = () => {
     const { gameId } = useParams();
@@ -16,6 +18,21 @@ const Statistics = () => {
     const [winners, setWinners] = useState(null);
     const [room, setRoom] = useState(null);
     const [winnerEmoji, setWinnerEmoji] = useState(null); // ✅ new state
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        // Bloquear retroceso
+        const handleBack = (e) => {
+            e.preventDefault();
+            navigate("/options");
+        };
+        window.history.pushState(null, "", window.location.href);
+        window.onpopstate = handleBack;
+
+        return () => {
+            window.onpopstate = null;
+        };
+    }, [navigate]);
 
     useEffect(() => {
         if (!gameId) {
@@ -39,6 +56,16 @@ const Statistics = () => {
                 const numbers = winnerNames.map(item => parseInt(item.match(/\d+/)[0], 10));
                 const sortedNumbers = numbers.sort((a, b) => a - b).join('');
                 setWinners(sortedNumbers);
+
+                const userName = sessionStorage.getItem("userName");
+                const player = data.players.find(p => p.username === userName);
+
+                // Si no existe el jugador o se salió del juego, redirigir a /options
+                if (!player || player.leftGame) {
+                    console.warn("El jugador no participó o abandonó la partida. Redirigiendo...");
+                    return navigate("/options");
+                }
+
                 setRoom(data.roomId);
 
                 // ✅ find and set winner emoji
@@ -49,6 +76,37 @@ const Statistics = () => {
                 console.error("Error al obtener los datos:", error);
             });
     }, [gameId]);
+
+    const handleLeave = async () => {
+        try {
+            const userName = sessionStorage.getItem("userName");
+            if (!game || !userName) return navigate("/options");
+
+            const player = game.players.find(p => p.username === userName);
+            if (!player) return navigate("/options");
+
+            const cell = game.board?.cells?.find(c => c.playerId === player.id);
+            const x = cell?.x ?? 0;
+            const y = cell?.y ?? 0;
+
+            // Reconectamos al socket de forma temporal
+            const socket = await import("socket.io-client").then(mod => mod.io(websocketApi));
+            socket.emit("leaveGame", {
+                gameId: game.id,
+                playerId: player.id,
+                x,
+                y
+            }, () => {
+                socket.disconnect();
+                navigate("/options");
+            });
+
+        } catch (err) {
+            console.error("Error al salir del juego:", err);
+            navigate("/options");
+        }
+    };
+
 
     if (!game) return <div>Loading...</div>;
 
@@ -107,6 +165,21 @@ const Statistics = () => {
                     </div>
                 </div>
             </div>
+            <button
+                onClick={handleLeave}
+                style={{
+                    marginTop: "20px",
+                    padding: "10px 20px",
+                    backgroundColor: "#dc3545",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: "5px",
+                    cursor: "pointer",
+                    fontWeight: "bold"
+                }}
+            >
+                Salir a Opciones
+            </button>
         </div>
     );
 };
