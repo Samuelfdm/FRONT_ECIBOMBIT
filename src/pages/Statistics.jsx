@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import "../style/Staticts.css";
 import Pie from "../components/Pie";
 import { charactersList } from '../constants/character';
+import { charactersListWinners } from '../constants/characterWinners';
 import Info from "../components/Info";
 import GeneralStatistics from "../components/GeneralStatistics";
 const backendApi = import.meta.env.VITE_BACKEND_URL;
@@ -13,6 +14,7 @@ const Statistics = () => {
     const [game, setGame] = useState(null);
     const [winners, setWinners] = useState(null);
     const [room, setRoom] = useState(null);
+    const [winnerEmoji, setWinnerEmoji] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -43,32 +45,20 @@ const Statistics = () => {
                 return response.json();
             })
             .then(data => {
-                const userName = sessionStorage.getItem("userName");
-                const player = data.players.find(p => p.username === userName);
-
-                // Si no existe el jugador o se salió del juego, redirigir a /options
-                if (!player || player.leftGame) {
-                    console.warn("El jugador no participó o abandonó la partida. Redirigiendo...");
-                    return navigate("/options");
-                }
-
                 setGame(data);
                 const winnerPlayers = data.players.filter(p => p.winner === true);
                 const winnerNames = winnerPlayers.map(winner => winner.character);
-                const sortedWinners = extractAndConcatenate(winnerNames);
-                setWinners(sortedWinners);
+                const numbers = winnerNames.map(item => parseInt(item.match(/\d+/)[0], 10));
+                const sortedNumbers = numbers.sort((a, b) => a - b).join('');
+                setWinners(sortedNumbers);
                 setRoom(data.roomId);
+                const winner = charactersListWinners.find(c => c.id === String(sortedNumbers));
+                setWinnerEmoji(winner ? winner.emoji : null);
             })
             .catch(error => {
                 console.error("Error al obtener los datos:", error);
             });
     }, [gameId]);
-
-    const extractAndConcatenate = (arr) => {
-        const numbers = arr.map(item => parseInt(item.match(/\d+/)[0], 10));
-        const sortedNumbers = numbers.sort((a, b) => a - b).join('');
-        return sortedNumbers;
-    };
 
     const handleLeave = async () => {
         try {
@@ -101,14 +91,13 @@ const Statistics = () => {
     };
 
     if (!game) return <div>Loading...</div>;
-    console.log("Sorted Winners: ", winners);
 
     return (
         <div className="background-statistics">
 
             <h1 className="title-statistics">📊 Estadísticas de la partida: {room}📈</h1>
 
-            <GeneralStatistics game={game}/>
+            <GeneralStatistics game={game} winner={winnerEmoji} />
 
             <div className="players-statistics">
                 <div className="graficos">

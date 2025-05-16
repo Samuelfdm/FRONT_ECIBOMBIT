@@ -127,7 +127,7 @@ const Game = () => {
             setGameOverMessage(message);
             setTimeout(() => {
                 navigate(`/statistics/${gameId}`);
-            }, 7000);
+            }, 5000);
         });
 
         setSocket(newSocket);

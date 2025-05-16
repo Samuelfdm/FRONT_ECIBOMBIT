@@ -160,7 +160,7 @@ const Options = () => {
         fetchUserName();
     }, [accounts, instance, userName]);
 
-    const joinRoom = (room) => {
+    const createRoom = (room) => {
         if (!room.trim()) {
             addAlert("El nombre de la sala no puede estar vacío");
             return;
@@ -191,7 +191,7 @@ const Options = () => {
     return (
         <div className="background-options"> 
             <div className="header-section">
-                <h1 className="section-title">Bienvenido, {userName || "Cargando..."}</h1>
+                <h1 className="section-titles">Bienvenido, {userName || "Cargando..."}</h1>
                 <button 
                     className="logout-button"
                     onClick={handleLogout}
@@ -222,7 +222,7 @@ const Options = () => {
                 />
                 <button 
                     className="create-button" 
-                    onClick={() => joinRoom(newRoom)}
+                    onClick={() => createRoom(newRoom)}
                     disabled={isLoading || !newRoom.trim()}
                 >
                     {isLoading ? "Cargando..." : "Crear Sala"}

@@ -2,6 +2,8 @@
   background: linear-gradient(135deg, #a66dd4b8, #784ba0c2);
   border-radius: 20px;
   padding: 1rem;
+  border-radius: 10px;
+  padding: 0.5rem;
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
   color: white;
   height: 20%;
@@ -14,14 +16,16 @@
 .player-img img {
   width: auto;
   height: 100%;
+  width: auto;
   object-fit: cover;
   border-radius: 10%;
   border: 2px solid white;
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
 }
 .player-img{
-    height: 100%;
-    width: 30%;
+  height: 100%;
+  width: 30%;
+  width: 20%;
 }
 
 .info {
@@ -30,18 +34,24 @@
   justify-content: center;
   flex-grow: 1;
   margin-left: 1rem;
+  margin-left: 3vw;
+  height: 100%;
 }
 
 .nameUser{
   align-items: center;
   margin-bottom: 8.5%;
   height: 15%;
+  margin-bottom: 15px;
+  height: 17%;
 }
 
 .nameUser h2 {
   font-size: 1.5vw;
+  font-size: 1.7vw;
   font-weight: bold;
   margin: 0;
+  font-family: 'titulos',sans-serif;
 }
 
 .progress {
@@ -49,19 +59,23 @@
   flex-direction: row;
   align-items: center;
   gap: 0.3rem;
+  gap: 1vw;
 }
 
 .progress h2 {
   font-size: 1.7rem;
+  font-size: 1.6vw;
   font-weight: bold;
   margin: 0;
 }
 
 .progress span {
   font-size: 1.2rem;
+  font-size: 1vw;
   background-color: rgba(255, 255, 255, 0.2);
   padding: 0.4rem 0.9rem;
   border-radius: 12px;
+  border-radius: 6px;
   font-weight: bold;
 }
 
