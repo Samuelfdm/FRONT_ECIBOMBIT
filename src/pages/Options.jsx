@@ -191,7 +191,7 @@ const Options = () => {
     return (
         <div className="background-options"> 
             <div className="header-section">
-                <h1 className="section-title">Bienvenido, {userName || "Cargando..."}</h1>
+                <h1 className="section-titles">Bienvenido, {userName || "Cargando..."}</h1>
                 <button 
                     className="logout-button"
                     onClick={handleLogout}

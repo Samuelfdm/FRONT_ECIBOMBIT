@@ -13,10 +13,18 @@
 }
 
 .section-title {
-    font-size: 24px;
+    font-size:2vw ;
     font-weight: bold;
     color: white;
-    margin: 20px 0;
+    margin-bottom: 0%;
+    margin-top: 0%;
+}
+.section-titles {
+    font-size: 2.8rem;
+    font-weight: bold;
+    color: white;
+    margin-top: 30px;
+    margin-bottom: 0;
 }
 
 .header-section {
@@ -27,6 +35,9 @@
 }
 
 .logout-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
     padding: 8px 16px;
     background-color: #f44336;
     color: white;
@@ -35,7 +46,10 @@
     cursor: pointer;
     font-size: 0.9rem;
     transition: background-color 0.3s;
+    width: 10%;
+    height:auto;
 }
+
 
 .logout-button:hover {
     background-color: #d32f2f;

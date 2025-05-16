@@ -16,7 +16,7 @@ const Game = () => {
     const [userName, setUserName] = useState(() => {
         return sessionStorage.getItem('userName') || '';
     });
-    const [isGameStarted, setIsGameStarted] = useState(false);
+    const [isGameStarted, setIsGameStarted] = useState();
     const [startCountdown, setStartCountdown] = useState(null);
     const [playersPanel, setPlayersPanel] = useState([]);
     const [playersGame, setPlayersGame] = useState([]); 
@@ -94,11 +94,11 @@ const Game = () => {
                 setStartCountdown(time);
                 if (time === 0) {
                     clearInterval(countdownInterval);
-                    setIsGameStarted(true);
                     setStartCountdown(null);
+                    setIsGameStarted(true); 
                 }
             }, 1000);
-        });
+        });  
 
         newSocket.on("gameTimerTick", ({ timeLeft }) => {
             setGameTimeLeft(timeLeft);
@@ -113,7 +113,7 @@ const Game = () => {
         });
 
         // Cuando termina el juego
-        newSocket.on('gameOver', ({winnerUsernames, reason }) => {
+        newSocket.on('gameOver', ({winnerUsernames, reason  }) => {
             console.log(winnerUsernames);
 
             let message;
@@ -127,7 +127,7 @@ const Game = () => {
             setGameOverMessage(message);
             setTimeout(() => {
                 navigate(`/statistics/${gameId}`);
-            }, 7000);
+            }, 3000);
         });
 
         setSocket(newSocket);
@@ -140,21 +140,27 @@ const Game = () => {
                 newSocket.off("gameTimerTick");
                 newSocket.off("playerDied");
                 newSocket.off("connect_error");
+                newSocket.off("gameOver");
                 newSocket.disconnect();
             }
         };
     }, [gameId, userName]);
 
     useEffect(() => {
-        const handlePopState = () => {
-            const cell = board?.cells?.find(c => c.playerId === playerId);
-            const x = cell?.x ?? 0;
-            const y = cell?.y ?? 0;
+        if (isGameStarted) {
+          console.log("🔥 El juego ha comenzado después del countdown.");
+        }
+      }, [isGameStarted]);
 
-            if (socket && gameId && playerId) {
-                socket.emit("leaveGame", { gameId, playerId, x, y }, () => {
-                    console.log("Jugador desconectado por botón atrás del navegador");
-                    navigate("/options"); // Redirigir manualmente
+    useEffect(() => {
+        const handlePopState = () => {
+                const cell = board?.cells?.find(c => c.playerId === playerId);
+                const x = cell?.x ?? 0;
+                const y = cell?.y ?? 0;
+                if (socket && gameId && playerId) {
+                    socket.emit("leaveGame", { gameId, playerId, x, y }, () => {
+                        console.log("Jugador desconectado por botón atrás del navegador");
+                        navigate("/options"); // Redirigir manualmente
                 });
             }
         };
@@ -210,7 +216,7 @@ const Game = () => {
                         />
                     );
                 })}
-
+                
                 {gameTimeLeft !== null && (
                     <div className="timer-box">
                         <span>{formatTime(gameTimeLeft)}</span>
@@ -220,13 +226,14 @@ const Game = () => {
             </div>
             <div className="game-board">
                 <PhaserGame
+                    key={isGameStarted ? "game-started" : "game-waiting"} // 🔑 clave única según el estado
                     board={board}
                     players={playersGame}
                     socket={socket}
                     playerId={(playersGame.find(p => p.username === userName))?.id}
                     gameId={gameId}
+                    enable={isGameStarted}
                 />
-
             </div>
         </div>
     );

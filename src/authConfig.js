@@ -1,8 +1,6 @@
 import { PublicClientApplication } from "@azure/msal-browser";
 const frontendApi = import.meta.env.VITE_FRONTEND_URL;
-
 console.log("VALOR OBTENIDO DE LA FRONTENDAPI AUTHCONFIG: "+frontendApi);
-
 const msalConfig = {
   auth: {
     clientId: "8ac06538-23db-40ee-8248-804535035221",
