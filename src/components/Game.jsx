@@ -196,7 +196,6 @@ const PhaserGame = ({ board, players, socket, playerId, gameId, enabled  }) => {
       window.addEventListener("keydown", handleKeyDown);
       window.addEventListener("keyup", handleKeyUp);
 
-
       //Actualizacion de los movimientos de otros jugadores
       socket.on("playerMoved", ({ playerId, x, y, direction }) => {
         const jugadorRemoto = playerSprites[playerId];
@@ -265,7 +264,6 @@ const PhaserGame = ({ board, players, socket, playerId, gameId, enabled  }) => {
       drawBomb(cellX, cellY); // Muestra la bomba localmente
       socket.emit("bombPlaced", { playerId, x: cellX, y: cellY, gameId });
       hasActiveBomb.current = true;
-
       const explosionTiles = [
         { x: cellX, y: cellY },
         { x: cellX - 1, y: cellY },
@@ -273,15 +271,14 @@ const PhaserGame = ({ board, players, socket, playerId, gameId, enabled  }) => {
         { x: cellX, y: cellY - 1 },
         { x: cellX, y: cellY + 1 },
       ];
-      
-      // Explosión después de 2 segundos
-      
+
       scene.time.delayedCall(2000, () => {
-        socket.emit("bombExploded", {
+
+      socket.emit("bombExploded", {
           playerId,
           explosionTiles,
           gameId,
-        });
+      });
         handleExplosion(explosionTiles,true);
         hasActiveBomb.current = false;
       });
@@ -348,7 +345,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId, enabled  }) => {
       const px = x * (tileSize + tileMargin) + tileSize / 2;
       const py = y * (tileSize + tileMargin) + tileSize / 2;
       const bomb = scene.add.circle(px, py, tileSize / 2 - 4, 0x000000);
-      scene.time.delayedCall(2000, () => bomb.destroy()); // Se destruye cuando explota
+      scene.time.delayedCall(3000, () => bomb.destroy()); // Se destruye cuando explota
     };
 
     socket.on("bombPlaced", ({ x, y }) => {
@@ -403,9 +400,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId, enabled  }) => {
       }
     };
     resizeGame();
-
     window.addEventListener("resize", resizeGame);
-    
 
     return () => {
       window.removeEventListener("resize", resizeGame);

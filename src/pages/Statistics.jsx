@@ -45,6 +45,15 @@ const Statistics = () => {
                 return response.json();
             })
             .then(data => {
+                const userName = sessionStorage.getItem("userName");
+                const player = data.players.find(p => p.username === userName);
+
+                // Si no existe el jugador o se salió del juego, redirigir a /options
+                if (!player || player.leftGame) {
+                    console.warn("El jugador no participó o abandonó la partida. Redirigiendo...");
+                    return navigate("/options");
+                }
+
                 setGame(data);
 
                 // ✅ process winners
@@ -76,13 +85,12 @@ const Statistics = () => {
 
     const handleLeave = async () => {
         try {
-            const userName2 = sessionStorage.getItem("userName");
-            if (!game || !userName2) return navigate("/options");
+            const userName = sessionStorage.getItem("userName");
+            if (!game || !userName) return navigate("/options");
+            const player = game.players.find(p => p.username === userName);
+            if (!player) return navigate("/options");
 
-            const player2 = game.players.find(p => p.username === userName2);
-            if (!player2) return navigate("/options");
-
-            const cell = game.board?.cells?.find(c => c.playerId === player2.id);
+            const cell = game.board?.cells?.find(c => c.playerId === player.id);
             const x = cell?.x ?? 0;
             const y = cell?.y ?? 0;
 
@@ -90,7 +98,7 @@ const Statistics = () => {
             const socket = await import("socket.io-client").then(mod => mod.io(websocketApi));
             socket.emit("leaveGame", {
                 gameId: game.id,
-                playerId: player2.id,
+                playerId: player.id,
                 x,
                 y
             }, () => {
@@ -103,7 +111,6 @@ const Statistics = () => {
             navigate("/options");
         }
     };
-
 
     if (!game) return <div>Loading...</div>;
 
@@ -122,22 +129,22 @@ const Statistics = () => {
                         <div className="part">
                             <div className="statistics">
                                 <h2>Desplazamientos cósmicos</h2>
-                                <Pie data={game.statistics.totalMoves} />
+                                <Pie data={game.statistics.totalMoves}/>
                             </div>
                             <div className="statistics">
                                 <h2>Bajas en el Campo Estelar</h2>
-                                <Pie data={game.statistics.kills} />
+                                <Pie data={game.statistics.kills}/>
                             </div>
                         </div>
 
                         <div className="part">
                             <div className="statistics">
                                 <h2>Astronaves pulverizadas</h2>
-                                <Pie data={game.statistics.totalBlocksDestroyed} />
+                                <Pie data={game.statistics.totalBlocksDestroyed}/>
                             </div>
                             <div className="statistics">
                                 <h2>Resistencia cósmica</h2>
-                                <Pie data={game.statistics.timeAlive} />
+                                <Pie data={game.statistics.timeAlive}/>
                             </div>
                         </div>
                     </div>

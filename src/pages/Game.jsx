@@ -57,7 +57,7 @@ const Game = () => {
     }, [location, navigate]);
 
     useEffect(() => {
-        console.log("VALOR OBTENIDO DE LA WEBSOCKETAPI: "+websocketApi);
+        console.log("VALOR OBTENIDO DE LA WEBSOCKETAPI GAME: "+websocketApi);
         const newSocket = io(websocketApi, {
             reconnection: true,
             reconnectionAttempts: 5,
@@ -166,6 +166,7 @@ const Game = () => {
         };
 
         window.addEventListener("popstate", handlePopState);
+
         return () => {
             window.removeEventListener("popstate", handlePopState);
         };

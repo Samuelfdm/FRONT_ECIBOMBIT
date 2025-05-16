@@ -91,14 +91,3 @@ jobs:
                 FRONTEND_URL=${{ secrets.FRONTEND_URL }} \
                 BACKEND_URL=${{ secrets.BACKEND_URL }} \
                 WEBSOCKET_URL=${{ secrets.WEBSOCKET_URL }}
-
-  sonarcloud:
-    needs: deploy
-    uses: ZayraGS1403/central-pipelines/.github/workflows/sonarcloud-analysis.yml@v0.1.1
-    with:
-      node-version: '20'
-      branch-name: ${{ github.ref_name }}
-    secrets:
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
-      SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}

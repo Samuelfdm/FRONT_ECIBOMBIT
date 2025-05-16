@@ -50,6 +50,7 @@ const Options = () => {
     };
 
     useEffect(() => {
+        console.log("VALOR OBTENIDO DE LA WEBSOCKETAPI OPTIONS: "+websocketApi);
         const newSocket = io(websocketApi, {
             reconnectionAttempts: 3,
             reconnectionDelay: 1000,
@@ -97,6 +98,7 @@ const Options = () => {
 
             const registerUserInBackend = async (name, email) => {
                 try {
+                    console.log("VALOR OBTENIDO DE LA BACKENDAPI OPTIONS: "+backendApi);
                     await axios.post(`${backendApi}/users/login`, {
                         oid: accounts[0].homeAccountId,
                         username: name,
