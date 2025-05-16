@@ -169,7 +169,7 @@ const Lobby = () => {
     useEffect(() => {
         if (!username) return;
         if (socketRef.current) return;
-        console.log("VALOR OBTENIDO DE LA WEBSOCKETAPI: "+websocketApi);
+        console.log("VALOR OBTENIDO DE LA WEBSOCKETAPI LOBBY: "+websocketApi);
         const newSocket = io(websocketApi, {
             reconnection: true,
             reconnectionAttempts: 5,

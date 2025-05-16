@@ -9,7 +9,7 @@ function GeneralStatistics({game, winner}) {
                 <h2>Resumen General</h2>
             </div>
             <div className="es">
-                <Info img={"/assets/bombas.webp"} 
+                <Info img={"/assets/bombas.webp"}
                   value={game.totalBombsPlaced}/>
                 <Info img={"/assets/naveEspacialFinal.png"} 
                     value={game.totalBlocksDestroyed}/>
