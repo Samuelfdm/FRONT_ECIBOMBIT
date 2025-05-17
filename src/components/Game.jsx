@@ -328,7 +328,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId, enabled  }) => {
           ) {
             eliminatePlayerSprite(id);
             if (isBombExploit) {
-              socket.emit("playerKilled", { gameId, killerId: playerId, victimId: id, playerId, x, y });
+              socket.emit("playerKilled", { gameId, killerId: playerId, victimId: id, playerId, x, y } );
             }
           }
         });

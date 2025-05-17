@@ -37,7 +37,15 @@ const Statistics = () => {
             return;
         }
 
-        fetch(`${backendApi}/games/${gameId}`)
+        const token = sessionStorage.getItem("jwtToken");
+
+        fetch(`${backendApi}/games/${gameId}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            }
+        })
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);

@@ -327,7 +327,9 @@ const Lobby = () => {
             }))
         };
 
-        socket.emit("startGame", gamePayload, (response) => {
+        const jwtToken = sessionStorage.getItem("jwtToken");
+        console.log(jwtToken);
+        socket.emit("startGame", gamePayload, jwtToken, (response) => {
             if (!response?.success) {
                 alert(response.message || "No se pudo iniciar el juego.");
             }

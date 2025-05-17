@@ -87,7 +87,16 @@ const Options = () => {
 
     useEffect(() => {
         const fetchUserName = async () => {
-            if (userName || sessionStorage.getItem('userName') || sessionStorage.getItem('userRegistered')) {
+            // Comprueba si ya tenemos el nombre de usuario en estado o almacenamiento
+            const storedUserName = sessionStorage.getItem('userName');
+            const userRegistered = sessionStorage.getItem('userRegistered');
+
+            // Si ya tenemos la información, no necesitamos hacer nada
+            if (userName || storedUserName || userRegistered) {
+                console.log("Usuario ya registrado, evitando re-fetch");
+                if (storedUserName && !userName) {
+                    setUserName(storedUserName);
+                }
                 return;
             }
 
@@ -98,13 +107,18 @@ const Options = () => {
 
             const registerUserInBackend = async (name, email) => {
                 try {
-                    console.log("VALOR OBTENIDO DE LA BACKENDAPI OPTIONS: "+backendApi);
-                    await axios.post(`${backendApi}/users/login`, {
+                    console.log("Registrando usuario en backend");
+                    const jwtResponse = await axios.post(`${backendApi}/users/login`, {
                         oid: accounts[0].homeAccountId,
                         username: name,
                         email: email
                     });
+
+                    //  Guardar el token que crea tu backend
+                    const jwtToken = jwtResponse.data.token;
+                    sessionStorage.setItem("jwtToken", jwtToken);
                     sessionStorage.setItem('userRegistered', 'true'); // Marcar como registrado
+                    sessionStorage.setItem('userName', name); // Guardar también en sessionStorage
                 } catch (e) {
                     console.error("Error registrando usuario en backend:", e);
                     addAlert("Error al registrar tu sesión. Intenta de nuevo.");
@@ -112,6 +126,7 @@ const Options = () => {
             };
 
             try {
+                console.log("Intentando obtener token silenciosamente");
                 const tokenResponse = await instance.acquireTokenSilent({
                     scopes: ["User.Read"],
                     account: accounts[0],
@@ -125,12 +140,13 @@ const Options = () => {
                 const email = graphResponse.data.mail || graphResponse.data.userPrincipalName;
 
                 setUserName(name);
-                localStorage.setItem('userName', name);
+                sessionStorage.setItem('userName', name); // Usar sessionStorage en lugar de localStorage
 
                 await registerUserInBackend(name, email);
             } catch (error) {
                 if (error instanceof InteractionRequiredAuthError) {
                     try {
+                        console.log("Requiere interacción, abriendo popup");
                         const tokenResponse = await instance.acquireTokenPopup({
                             scopes: ["User.Read"],
                         });
@@ -143,7 +159,7 @@ const Options = () => {
                         const email = graphResponse.data.mail || graphResponse.data.userPrincipalName;
 
                         setUserName(name);
-                        localStorage.setItem('userName', name);
+                        sessionStorage.setItem('userName', name); // Usar sessionStorage en lugar de localStorage
 
                         await registerUserInBackend(name, email);
                     } catch (popupError) {
@@ -158,7 +174,12 @@ const Options = () => {
         };
 
         fetchUserName();
-    }, [accounts, instance, userName]);
+
+        // Esta bandera nos ayuda a evitar una segunda ejecución del efecto
+        return () => {
+            console.log("Limpieza del efecto fetchUserName");
+        };
+    }, []);
 
     const createRoom = (room) => {
         if (!room.trim()) {
