@@ -12,11 +12,11 @@ const websocketApi = import.meta.env.VITE_WEBSOCKET_URL;
 
 const Options = () => {
     const { instance, accounts } = useMsal();
-    const [rooms, setRooms] = useState([]);
+    const [roomsData, setRoomsData] = useState([]); // Cambiamos 'rooms' a 'roomsData' para almacenar más info
     const [newRoom, setNewRoom] = useState("");
     const [userName, setUserName] = useState(() => {
         return sessionStorage.getItem('userName') || '';
-    }); 
+    });
     const [alerts, setAlerts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
@@ -69,7 +69,7 @@ const Options = () => {
 
         newSocket.emit("getRooms");
         newSocket.on("roomsList", (data) => {
-            setRooms(data);
+            setRoomsData(data); // Ahora 'data' contendrá un array de objetos { name, playerCount }
             setIsLoading(false);
         });
 
@@ -188,18 +188,22 @@ const Options = () => {
         });
     };
 
+    const joinRoom = (roomName) => {
+        navigate(`/lobby/${roomName}`);
+    };
+
     return (
-        <div className="background-options"> 
+        <div className="background-options">
             <div className="header-section">
                 <h1 className="section-titles">Bienvenido, {userName || "Cargando..."}</h1>
-                <button 
+                <button
                     className="logout-button"
                     onClick={handleLogout}
                 >
                     Cerrar sesión
                 </button>
             </div>
-            
+
             <h2 className="section-title">Salas disponibles</h2>
 
             {alerts.map(alert => (
@@ -220,8 +224,8 @@ const Options = () => {
                     className="room-input"
                     disabled={isLoading}
                 />
-                <button 
-                    className="create-button" 
+                <button
+                    className="create-button"
                     onClick={() => createRoom(newRoom)}
                     disabled={isLoading || !newRoom.trim()}
                 >
@@ -233,16 +237,20 @@ const Options = () => {
                 <div className="loading">Cargando salas...</div>
             ) : (
                 <div className="rooms-list">
-                    {rooms.length > 0 ? (
-                        rooms.map((room) => (
-                            <button 
-                                className="rooms" 
-                                key={room}
-                                onClick={() => navigate(`/lobby/${room}`)}
-                                disabled={isLoading}
-                            >
-                                {room}
-                            </button>
+                    {roomsData.length > 0 ? (
+                        roomsData.map((roomInfo) => (
+                            <div key={roomInfo.name} className="room-item">
+                                <button
+                                    className="rooms"
+                                    onClick={() => joinRoom(roomInfo.name)}
+                                    disabled={isLoading || roomInfo.playerCount >= 4} // Deshabilitar si la sala está llena
+                                >
+                                    {roomInfo.name} ({roomInfo.playerCount}/4)
+                                </button>
+                                {roomInfo.playerCount >= 4 && (
+                                    <span className="full-room-indicator">(Llena)</span>
+                                )}
+                            </div>
                         ))
                     ) : (
                         <p className="no-rooms">No hay salas disponibles</p>
