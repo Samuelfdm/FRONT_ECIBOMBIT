@@ -1,0 +1,104 @@
+name: Build and Deploy - Frontend EciBombit
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+permissions:
+  contents: write
+  actions: write
+  id-token: write
+
+env:
+  ACR_NAME: ${{ secrets.ACR_NAME }}
+  RESOURCE_GROUP: BOMBIT-RG
+  CONTAINER_APP_NAME: front-client
+  CONTAINER_APP_ENV: bombit-env
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.set_output.outputs.image_tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Crear archivo .env.production para Vite
+        run: |
+          echo "VITE_FRONTEND_URL=${{ secrets.FRONTEND_URL }}" > .env.production
+          echo "VITE_BACKEND_URL=${{ secrets.BACKEND_URL }}" >> .env.production
+          echo "VITE_WEBSOCKET_URL=${{ secrets.WEBSOCKET_URL }}" >> .env.production
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Verificar contenido de build
+        run: ls -l dist
+
+      - name: Azure Login (OIDC)
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to ACR
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.ACR_NAME }}.azurecr.io
+          username: ${{ secrets.AZURE_CLIENT_ID }}
+          password: ${{ secrets.AZURE_CLIENT_SECRET }}
+
+      - name: Build and push Docker image
+        id: set_output
+        run: |
+          docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/front-client:${{ github.sha }} .
+          docker push ${{ secrets.ACR_NAME }}.azurecr.io/front-client:${{ github.sha }}
+          echo "image_tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Azure Login (OIDC)
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to Azure Container App
+        uses: azure/CLI@v1
+        with:
+          azcliversion: "2.72.0"
+          inlineScript: |
+            az containerapp update \
+              --name ${{ env.CONTAINER_APP_NAME }} \
+              --resource-group ${{ env.RESOURCE_GROUP }} \
+              --image ${{ env.ACR_NAME }}.azurecr.io/front-client:${{ needs.build.outputs.image_tag }} \
+              --set-env-vars \
+                FRONTEND_URL=${{ secrets.FRONTEND_URL }} \
+                BACKEND_URL=${{ secrets.BACKEND_URL }} \
+                WEBSOCKET_URL=${{ secrets.WEBSOCKET_URL }}
+
+#  sonarcloud:
+#    needs: deploy
+#    uses: ZayraGS1403/central-pipelines/.github/workflows/sonarcloud-analysis.yml@v0.1.1
+#    with:
+#      node-version: '20'
+#      branch-name: ${{ github.ref_name }}
+#    secrets:
+#      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#      SONAR_ORGANIZATION: ${{ secrets.SONAR_ORGANIZATION }}
+#      SONAR_PROJECT_KEY: ${{ secrets.SONAR_PROJECT_KEY }}

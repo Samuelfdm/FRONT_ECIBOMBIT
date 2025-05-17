@@ -7,6 +7,8 @@ import axios from "axios";
 import Alert from "../components/Alert";
 import "../style/Global.css";
 import "../style/Options.css";
+const backendApi = import.meta.env.VITE_BACKEND_URL;
+const websocketApi = import.meta.env.VITE_WEBSOCKET_URL;
 
 const Options = () => {
     const { instance, accounts } = useMsal();
@@ -48,7 +50,8 @@ const Options = () => {
     };
 
     useEffect(() => {
-        const newSocket = io("ws://localhost:3000", {
+        console.log("VALOR OBTENIDO DE LA WEBSOCKETAPI OPTIONS: "+websocketApi);
+        const newSocket = io(websocketApi, {
             reconnectionAttempts: 3,
             reconnectionDelay: 1000,
         });
@@ -95,7 +98,8 @@ const Options = () => {
 
             const registerUserInBackend = async (name, email) => {
                 try {
-                    await axios.post("http://localhost:8080/users/login", {
+                    console.log("VALOR OBTENIDO DE LA BACKENDAPI OPTIONS: "+backendApi);
+                    await axios.post(`${backendApi}/users/login`, {
                         oid: accounts[0].homeAccountId,
                         username: name,
                         email: email

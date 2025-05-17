@@ -1,0 +1,116 @@
+.background-statistics{
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: white;
+  background-image: url("/assets/fondoStatistics.jpg");
+  overflow-y: auto;
+  gap: 0.7vw;
+  padding: 0; /* Remueve padding que empuja el contenido */
+  margin: 0;
+}
+
+.players-statistics{
+  display: flex;
+  flex-direction: row;
+  background-color: rgba(135, 78, 153, 0.23);
+  width: 75%;
+  height: 48%;
+  align-items: center;
+  justify-content: flex-start;
+  border-radius: 6vh;
+  overflow-y: auto;
+}
+.graficos{
+  display: flex;
+  flex-direction: column;
+  width: 68%;
+  height: 100%;
+  gap: 0;
+  align-items: center;
+  justify-content: flex-start;
+  border-radius: 6vh;
+}
+.graficosSS{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 80%;
+  align-items: center;
+  justify-content: flex-start;
+  border-radius: 6vh;
+  overflow-y: auto;
+}
+.players-info-container{
+  display: flex;
+  flex-direction: column;
+  width: 32%;
+  height: 100%;
+  align-items: center;
+  justify-content: flex-start;
+  gap:0%;
+}
+
+.players-info-containerRR{
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 80%;
+  align-items: center;
+  justify-content: flex-start;
+  gap:0%;
+  overflow-y: auto;
+
+}
+
+
+.graficosSS::-webkit-scrollbar {
+  display: none;
+}
+.players-info-containerRR::-webkit-scrollbar {
+  display: none;
+}
+
+.part{
+   display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+
+}
+
+.title-s{
+    font-family: 'titulos',sans-serif;
+    font-size: 100%;
+    display: flex;
+    width: 100%;
+    height: 25%;
+    align-items: center;
+    margin-top: 0%;
+    justify-content: center;
+    color: aliceblue;
+    margin-bottom: 0px;
+}
+
+.title-statistics{
+  color:rgb(177, 232, 235);
+  font-size: 3.5vw;
+}
+
+.statistics{
+  display: flex;
+  flex-direction: column;
+  width:auto;
+  height: auto;
+  justify-content: center;
+  justify-items: center;
+  align-items: center;
+  font-size: 1vw;
+}
+
