@@ -12,11 +12,11 @@ const websocketApi = import.meta.env.VITE_WEBSOCKET_URL;
 
 const Options = () => {
     const { instance, accounts } = useMsal();
-    const [rooms, setRooms] = useState([]);
+    const [roomsData, setRoomsData] = useState([]); // Cambiamos 'rooms' a 'roomsData' para almacenar más info
     const [newRoom, setNewRoom] = useState("");
     const [userName, setUserName] = useState(() => {
         return sessionStorage.getItem('userName') || '';
-    }); 
+    });
     const [alerts, setAlerts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
@@ -69,7 +69,7 @@ const Options = () => {
 
         newSocket.emit("getRooms");
         newSocket.on("roomsList", (data) => {
-            setRooms(data);
+            setRoomsData(data); // Ahora 'data' contendrá un array de objetos { name, playerCount }
             setIsLoading(false);
         });
 
@@ -87,7 +87,16 @@ const Options = () => {
 
     useEffect(() => {
         const fetchUserName = async () => {
-            if (userName || sessionStorage.getItem('userName') || sessionStorage.getItem('userRegistered')) {
+            // Comprueba si ya tenemos el nombre de usuario en estado o almacenamiento
+            const storedUserName = sessionStorage.getItem('userName');
+            const userRegistered = sessionStorage.getItem('userRegistered');
+
+            // Si ya tenemos la información, no necesitamos hacer nada
+            if (userName || storedUserName || userRegistered) {
+                console.log("Usuario ya registrado, evitando re-fetch");
+                if (storedUserName && !userName) {
+                    setUserName(storedUserName);
+                }
                 return;
             }
 
@@ -98,13 +107,18 @@ const Options = () => {
 
             const registerUserInBackend = async (name, email) => {
                 try {
-                    console.log("VALOR OBTENIDO DE LA BACKENDAPI OPTIONS: "+backendApi);
-                    await axios.post(`${backendApi}/users/login`, {
+                    console.log("Registrando usuario en backend");
+                    const jwtResponse = await axios.post(`${backendApi}/users/login`, {
                         oid: accounts[0].homeAccountId,
                         username: name,
                         email: email
                     });
+
+                    //  Guardar el token que crea tu backend
+                    const jwtToken = jwtResponse.data.token;
+                    sessionStorage.setItem("jwtToken", jwtToken);
                     sessionStorage.setItem('userRegistered', 'true'); // Marcar como registrado
+                    sessionStorage.setItem('userName', name); // Guardar también en sessionStorage
                 } catch (e) {
                     console.error("Error registrando usuario en backend:", e);
                     addAlert("Error al registrar tu sesión. Intenta de nuevo.");
@@ -112,6 +126,7 @@ const Options = () => {
             };
 
             try {
+                console.log("Intentando obtener token silenciosamente");
                 const tokenResponse = await instance.acquireTokenSilent({
                     scopes: ["User.Read"],
                     account: accounts[0],
@@ -125,12 +140,13 @@ const Options = () => {
                 const email = graphResponse.data.mail || graphResponse.data.userPrincipalName;
 
                 setUserName(name);
-                localStorage.setItem('userName', name);
+                sessionStorage.setItem('userName', name); // Usar sessionStorage en lugar de localStorage
 
                 await registerUserInBackend(name, email);
             } catch (error) {
                 if (error instanceof InteractionRequiredAuthError) {
                     try {
+                        console.log("Requiere interacción, abriendo popup");
                         const tokenResponse = await instance.acquireTokenPopup({
                             scopes: ["User.Read"],
                         });
@@ -143,7 +159,7 @@ const Options = () => {
                         const email = graphResponse.data.mail || graphResponse.data.userPrincipalName;
 
                         setUserName(name);
-                        localStorage.setItem('userName', name);
+                        sessionStorage.setItem('userName', name); // Usar sessionStorage en lugar de localStorage
 
                         await registerUserInBackend(name, email);
                     } catch (popupError) {
@@ -158,9 +174,14 @@ const Options = () => {
         };
 
         fetchUserName();
-    }, [accounts, instance, userName]);
 
-    const joinRoom = (room) => {
+        // Esta bandera nos ayuda a evitar una segunda ejecución del efecto
+        return () => {
+            console.log("Limpieza del efecto fetchUserName");
+        };
+    }, []);
+
+    const createRoom = (room) => {
         if (!room.trim()) {
             addAlert("El nombre de la sala no puede estar vacío");
             return;
@@ -188,18 +209,22 @@ const Options = () => {
         });
     };
 
+    const joinRoom = (roomName) => {
+        navigate(`/lobby/${roomName}`);
+    };
+
     return (
-        <div className="background-options"> 
+        <div className="background-options">
             <div className="header-section">
-                <h1 className="section-title">Bienvenido, {userName || "Cargando..."}</h1>
-                <button 
+                <h1 className="section-titles">Bienvenido, {userName || "Cargando..."}</h1>
+                <button
                     className="logout-button"
                     onClick={handleLogout}
                 >
                     Cerrar sesión
                 </button>
             </div>
-            
+
             <h2 className="section-title">Salas disponibles</h2>
 
             {alerts.map(alert => (
@@ -220,9 +245,9 @@ const Options = () => {
                     className="room-input"
                     disabled={isLoading}
                 />
-                <button 
-                    className="create-button" 
-                    onClick={() => joinRoom(newRoom)}
+                <button
+                    className="create-button"
+                    onClick={() => createRoom(newRoom)}
                     disabled={isLoading || !newRoom.trim()}
                 >
                     {isLoading ? "Cargando..." : "Crear Sala"}
@@ -233,16 +258,20 @@ const Options = () => {
                 <div className="loading">Cargando salas...</div>
             ) : (
                 <div className="rooms-list">
-                    {rooms.length > 0 ? (
-                        rooms.map((room) => (
-                            <button 
-                                className="rooms" 
-                                key={room}
-                                onClick={() => navigate(`/lobby/${room}`)}
-                                disabled={isLoading}
-                            >
-                                {room}
-                            </button>
+                    {roomsData.length > 0 ? (
+                        roomsData.map((roomInfo) => (
+                            <div key={roomInfo.name} className="room-item">
+                                <button
+                                    className="rooms"
+                                    onClick={() => joinRoom(roomInfo.name)}
+                                    disabled={isLoading || roomInfo.playerCount >= 4} // Deshabilitar si la sala está llena
+                                >
+                                    {roomInfo.name} ({roomInfo.playerCount}/4)
+                                </button>
+                                {roomInfo.playerCount >= 4 && (
+                                    <span className="full-room-indicator">(Llena)</span>
+                                )}
+                            </div>
                         ))
                     ) : (
                         <p className="no-rooms">No hay salas disponibles</p>

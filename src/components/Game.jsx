@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import Phaser from "phaser";
 import { charactersList } from '../constants/character';
 
-const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
+const PhaserGame = ({ board, players, socket, playerId, gameId, enabled  }) => {
   const gameRef = useRef(null);
-  const [isDead, setIsDead] = useState(false);
+  const isDeadRef = useRef(false);
+  const isGameOverRef = useRef(false);
   const hasActiveBomb = useRef(false);
   const navigate = useNavigate();
   let positionX = null;
@@ -19,7 +20,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
     const keysPressed = { left: false, right: false, up: false, down: false };
 
     const handleKeyDown = (event) => {
-      if (isDead) return;
+      if (isDeadRef.current || isGameOverRef.current) return;
       switch (event.key) {
         case "ArrowLeft":
           keysPressed.left = true;
@@ -42,7 +43,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
     };
 
     const handleKeyUp = (event) => {
-      if (isDead) return;
+      if (isDeadRef.current || isGameOverRef.current) return;
       switch (event.key) {
         case "ArrowLeft":
           keysPressed.left = false;
@@ -109,8 +110,8 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
 
       if (victimId === playerId) {
         // Si soy yo quien murió
-        setIsDead(true);
         currentPlayer = null;
+        isDeadRef.current = true;
       }
     }
 
@@ -125,7 +126,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
           console.warn(`No image found for character ID: ${player.character}`);
         }
       });
-      this.load.image("wall", "/assets/moon.png");
+      this.load.image("wall", "/assets/luna.webp");
       this.load.image("block", "/assets/naveEspacial.png");
     }
 
@@ -207,7 +208,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
     }
 
     function update() {
-      if (!currentPlayer) return;
+      if (!currentPlayer || isGameOverRef.current || isDeadRef.current) return;
 
       const speed = 150;
       currentPlayer.setVelocity(0);
@@ -271,13 +272,13 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
         { x: cellX, y: cellY + 1 },
       ];
 
-      // Explosión después de 3 segundos
-      scene.time.delayedCall(3000, () => {
-        socket.emit("bombExploded", {
+      scene.time.delayedCall(2000, () => {
+
+      socket.emit("bombExploded", {
           playerId,
           explosionTiles,
           gameId,
-        });
+      });
         handleExplosion(explosionTiles,true);
         hasActiveBomb.current = false;
       });
@@ -327,7 +328,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
           ) {
             eliminatePlayerSprite(id);
             if (isBombExploit) {
-              socket.emit("playerKilled", { gameId, killerId: playerId, victimId: id, playerId, x, y });
+              socket.emit("playerKilled", { gameId, killerId: playerId, victimId: id, playerId, x, y } );
             }
           }
         });
@@ -344,7 +345,7 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
       const px = x * (tileSize + tileMargin) + tileSize / 2;
       const py = y * (tileSize + tileMargin) + tileSize / 2;
       const bomb = scene.add.circle(px, py, tileSize / 2 - 4, 0x000000);
-      scene.time.delayedCall(3000, () => bomb.destroy()); // Se destruye cuando explota
+      scene.time.delayedCall(2000, () => bomb.destroy()); // Se destruye cuando explota
     };
 
     socket.on("bombPlaced", ({ x, y }) => {
@@ -368,6 +369,17 @@ const PhaserGame = ({ board, players, socket, playerId, gameId  }) => {
           showGameMessage(scene, `💀 Fuiste eliminado por ${killerUsername}`);
         }
       }
+    });
+    
+    socket.on('gameOver', ({winnerUsernames, reason }) => {
+        console.log(winnerUsernames);
+        isGameOverRef.current = true;
+        if (currentPlayer) {
+          currentPlayer.setVelocity(0, 0);
+          currentPlayer.body.enable = false; 
+          currentPlayer.body.moves = false;
+          currentPlayer.active = false; // 
+        }
     });
 
     if (gameRef.current) {
