@@ -45,13 +45,32 @@ const Statistics = () => {
                 return response.json();
             })
             .then(data => {
+                const userName = sessionStorage.getItem("userName");
+                const player = data.players.find(p => p.username === userName);
+
+                // Si no existe el jugador o se salió del juego, redirigir a /options
+                if (!player || player.leftGame) {
+                    console.warn("El jugador no participó o abandonó la partida. Redirigiendo...");
+                    return navigate("/options");
+                }
+
                 setGame(data);
+
+                // ✅ process winners
                 const winnerPlayers = data.players.filter(p => p.winner === true);
                 const winnerNames = winnerPlayers.map(winner => winner.character);
                 const numbers = winnerNames.map(item => parseInt(item.match(/\d+/)[0], 10));
                 const sortedNumbers = numbers.sort((a, b) => a - b).join('');
                 setWinners(sortedNumbers);
+                // Si no existe el jugador o se salió del juego, redirigir a /options
+                if (!player || player.leftGame) {
+                    console.warn("El jugador no participó o abandonó la partida. Redirigiendo...");
+                    return navigate("/options");
+                }
+
                 setRoom(data.roomId);
+
+                // ✅ find and set winner emoji
                 const winner = charactersListWinners.find(c => c.id === String(sortedNumbers));
                 setWinnerEmoji(winner ? winner.emoji : null);
             })
@@ -64,7 +83,6 @@ const Statistics = () => {
         try {
             const userName = sessionStorage.getItem("userName");
             if (!game || !userName) return navigate("/options");
-
             const player = game.players.find(p => p.username === userName);
             if (!player) return navigate("/options");
 
@@ -94,7 +112,6 @@ const Statistics = () => {
 
     return (
         <div className="background-statistics">
-
             <h1 className="title-statistics">📊 Estadísticas de la partida: {room}📈</h1>
 
             <GeneralStatistics game={game} winner={winnerEmoji} />

@@ -1,8 +1,8 @@
 .background-options {
     background-size: cover;
-    background-position: center;
+    background-position: center; 
     background-repeat: no-repeat;
-    height: 100vh;
+    height: 100vh; 
     width: 100vw;
     display: flex;
     flex-direction: column;
@@ -13,11 +13,9 @@
 }
 
 .section-title {
-    font-size: 24px;
     font-size:2vw ;
     font-weight: bold;
     color: white;
-    margin: 20px 0;
     margin-bottom: 0%;
     margin-top: 0%;
 }
@@ -52,6 +50,7 @@
     height:auto;
 }
 
+
 .logout-button:hover {
     background-color: #d32f2f;
 }
@@ -60,11 +59,12 @@
     background-color: #b71c1c;
 }
 
+
+
 h1 {
     font-size: 100vw;
     font-family: 'titulos',sans-serif;
 }
-
 .rooms-list{
 
     display: flex;
@@ -93,6 +93,7 @@ h1 {
 .rooms:hover {
     background-color: rgba(147, 227, 253, 0.815);
 }
+
 
 .room-creation {
     display: flex;
@@ -123,3 +124,4 @@ h1 {
 .create-button:hover {
     background-color: #c0392b;
 }
+
